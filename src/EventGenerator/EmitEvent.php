@@ -5,10 +5,12 @@ namespace Drupal\islandora\EventGenerator;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Action\ConfigurableActionBase;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\jwt\Authentication\Provider\JwtAuth;
 use Stomp\Exception\StompException;
 use Stomp\StatefulStomp;
@@ -19,6 +21,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Configurable action base for actions that publish messages to queues.
  */
 abstract class EmitEvent extends ConfigurableActionBase implements ContainerFactoryPluginInterface {
+  use StringTranslationTrait;
 
   /**
    * Current user.
@@ -56,6 +59,13 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
   protected $auth;
 
   /**
+   * The messenger.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
    * Constructs a EmitEvent action.
    *
    * @param array $configuration
@@ -74,6 +84,8 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
    *   Stomp client.
    * @param \Drupal\jwt\Authentication\Provider\JwtAuth $auth
    *   JWT Auth client.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger.
    */
   public function __construct(
     array $configuration,
@@ -83,7 +95,8 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
     EntityTypeManagerInterface $entity_type_manager,
     EventGeneratorInterface $event_generator,
     StatefulStomp $stomp,
-    JwtAuth $auth
+    JwtAuth $auth,
+    MessengerInterface $messenger
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->account = $account;
@@ -91,6 +104,7 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
     $this->eventGenerator = $event_generator;
     $this->stomp = $stomp;
     $this->auth = $auth;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -105,7 +119,8 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
       $container->get('entity_type.manager'),
       $container->get('islandora.eventgenerator'),
       $container->get('islandora.stomp'),
-      $container->get('jwt.authentication.jwt')
+      $container->get('jwt.authentication.jwt'),
+      $container->get('messenger')
     );
   }
 
@@ -119,10 +134,10 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
     if (empty($token)) {
       // JWT isn't properly configured. Log and notify user.
       \Drupal::logger('islandora')->error(
-        t('Error getting JWT token for message. Check JWT Configuration.')
+        $this->t('Error getting JWT token for message. Check JWT Configuration.')
       );
-      drupal_set_message(
-        t('Error getting JWT token for message. Check JWT Configuration.'), 'error'
+      $this->messenger->addMessage(
+        $this->t('Error getting JWT token for message. Check JWT Configuration.'), 'error'
       );
       return;
     }
@@ -139,10 +154,10 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
     catch (\RuntimeException $e) {
       // Notify the user the event couldn't be generated and abort.
       \Drupal::logger('islandora')->error(
-        t('Error generating event: @msg', ['@msg' => $e->getMessage()])
+        $this->t('Error generating event: @msg', ['@msg' => $e->getMessage()])
       );
-      drupal_set_message(
-        t('Error generating event: @msg', ['@msg' => $e->getMessage()]),
+      $this->messenger->addMessage(
+        $this->t('Error generating event: @msg', ['@msg' => $e->getMessage()]),
         'error'
       );
       return;
@@ -162,8 +177,8 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
       );
 
       // Notify user.
-      drupal_set_message(
-        t('Error publishing message: @msg',
+      $this->messenger->addMessage(
+        $this->t('Error publishing message: @msg',
           ['@msg' => $e->getMessage()]
         ),
         'error'
@@ -194,22 +209,22 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form['queue'] = [
       '#type' => 'textfield',
-      '#title' => t('Queue'),
+      '#title' => $this->t('Queue'),
       '#default_value' => $this->configuration['queue'],
       '#required' => TRUE,
       '#rows' => '8',
-      '#description' => t('Name of queue to which event is published'),
+      '#description' => $this->t('Name of queue to which event is published'),
     ];
     $form['event'] = [
       '#type' => 'select',
-      '#title' => t('Event type'),
+      '#title' => $this->t('Event type'),
       '#default_value' => $this->configuration['event'],
-      '#description' => t('Type of event to emit'),
+      '#description' => $this->t('Type of event to emit'),
       '#options' => [
-        'Create' => t('Create'),
-        'Update' => t('Update'),
-        'Delete' => t('Delete'),
-        'Generate Derivative' => t('Generate Derivative'),
+        'Create' => $this->t('Create'),
+        'Update' => $this->t('Update'),
+        'Delete' => $this->t('Delete'),
+        'Generate Derivative' => $this->t('Generate Derivative'),
       ],
     ];
     return $form;

@@ -3,7 +3,7 @@
 namespace Drupal\Tests\islandora\Functional;
 
 use Drupal\Core\Url;
-use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
+use Drupal\Tests\field\Traits\EntityReferenceTestTrait;
 
 /**
  * Tests the RelatedLinkHeader view alter.
@@ -94,7 +94,7 @@ class AddMediaToNodeTest extends IslandoraFunctionalTestBase {
       'access content',
     ]);
     $this->drupalLogin($account);
-    $options['auth'] = [$account->getUsername(), $account->pass_raw];
+    $options['auth'] = [$account->getDisplayName(), $account->pass_raw];
     $response = $client->request('PUT', $add_to_node_url, $options);
     $this->assertTrue($response->getStatusCode() == 403, "Expected 403, received {$response->getStatusCode()}");
 
@@ -108,7 +108,7 @@ class AddMediaToNodeTest extends IslandoraFunctionalTestBase {
       'bypass node access',
     ]);
     $this->drupalLogin($account);
-    $options['auth'] = [$account->getUsername(), $account->pass_raw];
+    $options['auth'] = [$account->getDisplayName(), $account->pass_raw];
     $response = $client->request('PUT', $add_to_node_url, $options);
     $this->assertTrue($response->getStatusCode() == 403, "Expected 403, received {$response->getStatusCode()}");
 
@@ -121,7 +121,7 @@ class AddMediaToNodeTest extends IslandoraFunctionalTestBase {
 
     // Request without Content-Type header should fail with 400.
     $options = [
-      'auth' => [$account->getUsername(), $account->pass_raw],
+      'auth' => [$account->getDisplayName(), $account->pass_raw],
       'http_errors' => FALSE,
       'headers' => [
         'Content-Location' => 'public://test_file.txt',
@@ -133,7 +133,7 @@ class AddMediaToNodeTest extends IslandoraFunctionalTestBase {
 
     // Request without Content-Location header should fail with 400.
     $options = [
-      'auth' => [$account->getUsername(), $account->pass_raw],
+      'auth' => [$account->getDisplayName(), $account->pass_raw],
       'http_errors' => FALSE,
       'headers' => [
         'Content-Type' => 'text/plain',
@@ -145,7 +145,7 @@ class AddMediaToNodeTest extends IslandoraFunctionalTestBase {
 
     // Request without body should fail with 400.
     $options = [
-      'auth' => [$account->getUsername(), $account->pass_raw],
+      'auth' => [$account->getDisplayName(), $account->pass_raw],
       'http_errors' => FALSE,
       'headers' => [
         'Content-Type' => 'text/plain',
@@ -157,7 +157,7 @@ class AddMediaToNodeTest extends IslandoraFunctionalTestBase {
 
     // Test properly formed requests with bad parameters in the route.
     $options = [
-      'auth' => [$account->getUsername(), $account->pass_raw],
+      'auth' => [$account->getDisplayName(), $account->pass_raw],
       'http_errors' => FALSE,
       'headers' => [
         'Content-Type' => 'text/plain',
@@ -200,7 +200,7 @@ class AddMediaToNodeTest extends IslandoraFunctionalTestBase {
 
     // Should be successful with proper url, options, and permissions.
     $options = [
-      'auth' => [$account->getUsername(), $account->pass_raw],
+      'auth' => [$account->getDisplayName(), $account->pass_raw],
       'http_errors' => FALSE,
       'headers' => [
         'Content-Type' => 'text/plain',

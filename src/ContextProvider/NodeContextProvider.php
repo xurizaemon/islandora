@@ -3,9 +3,8 @@
 namespace Drupal\islandora\ContextProvider;
 
 use Drupal\node\NodeInterface;
-use Drupal\Core\Plugin\Context\Context;
-use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\ContextProviderInterface;
+use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
@@ -36,8 +35,7 @@ class NodeContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getRuntimeContexts(array $unqualified_context_ids) {
-    $context_definition = new ContextDefinition('entity:node', NULL, FALSE);
-    $context = new Context($context_definition, $this->node);
+    $context = EntityContext::fromEntity($this->node);
     return ['@node.node_route_context:node' => $context];
   }
 
@@ -45,7 +43,7 @@ class NodeContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getAvailableContexts() {
-    $context = new Context(new ContextDefinition('entity:node', $this->t('Node from entity hook')));
+    $context = EntityContext::fromEntityTypeId('node', $this->t('Node from entity hook'));
     return ['@node.node_route_context:node' => $context];
   }
 

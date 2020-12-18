@@ -37,7 +37,7 @@ class GenerateVideoDerivativeTest extends GenerateDerivativeTestBase {
     // Create an action to generate a jpeg thumbnail.
     $this->drupalGet('admin/config/system/actions');
     $this->getSession()->getPage()->findById("edit-action")->selectOption("Generate a video derivative");
-    $this->getSession()->getPage()->pressButton(t('Create'));
+    $this->getSession()->getPage()->pressButton($this->t('Create'));
     $this->assertSession()->statusCodeEquals(200);
 
     $this->getSession()->getPage()->fillField('edit-label', "Generate video test derivative");
@@ -50,7 +50,7 @@ class GenerateVideoDerivativeTest extends GenerateDerivativeTestBase {
     $this->getSession()->getPage()->fillField('edit-args', "-f mp4");
     $this->getSession()->getPage()->fillField('edit-scheme', "public");
     $this->getSession()->getPage()->fillField('edit-path', "derp.mov");
-    $this->getSession()->getPage()->pressButton(t('Save'));
+    $this->getSession()->getPage()->pressButton($this->t('Save'));
     $this->assertSession()->statusCodeEquals(200);
 
     // Create a context and add the action as a derivative reaction.
@@ -65,7 +65,7 @@ class GenerateVideoDerivativeTest extends GenerateDerivativeTestBase {
       'field_media_of[0][target_id]' => 'Test Node',
       'field_tags[0][target_id]' => 'Preservation Master',
     ];
-    $this->drupalPostForm('media/add/' . $this->testMediaType->id(), $values, t('Save'));
+    $this->drupalPostForm('media/add/' . $this->testMediaType->id(), $values, $this->t('Save'));
 
     $expected = [
       'source_uri' => 'test_file.txt',

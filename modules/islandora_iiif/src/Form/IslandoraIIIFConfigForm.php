@@ -2,15 +2,48 @@
 
 namespace Drupal\islandora_iiif\Form;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\UrlHelper;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Form to configure IslandoraIIIF.
  */
 class IslandoraIIIFConfigForm extends ConfigFormBase {
+
+  /**
+   * The HTTP client to fetch the files with.
+   *
+   * @var \GuzzleHttp\ClientInterface
+   */
+  protected $httpClient;
+
+  /**
+   * IslandoraIIIFConfigForm constructor.
+   *
+   * @param \GuzzleHttp\ClientInterface $http_client
+   *   A Guzzle client object.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory service.
+   */
+  public function __construct(ClientInterface $http_client, ConfigFactoryInterface $config_factory) {
+    parent::__construct($config_factory);
+    $this->httpClient = $http_client;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('http_client'),
+      $container->get('config.factory')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -78,9 +111,8 @@ class IslandoraIIIFConfigForm extends ConfigFormBase {
    *   True if server returns 200 on a HEAD request.
    */
   private function validateIiifUrl($server_uri) {
-    $client = \Drupal::httpClient();
     try {
-      $result = $client->head($server_uri);
+      $result = $this->httpClient->head($server_uri);
       return ($result->getStatusCode() == 200);
     }
     catch (ClientException $e) {

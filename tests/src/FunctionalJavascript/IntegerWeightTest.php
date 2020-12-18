@@ -33,6 +33,13 @@ class IntegerWeightTest extends WebDriverTestBase {
   ];
 
   /**
+   * Name of theme.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * Name of the field.
    *
    * Used in the test view; change there

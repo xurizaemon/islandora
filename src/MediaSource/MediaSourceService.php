@@ -3,7 +3,6 @@
 namespace Drupal\islandora\MediaSource;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\Query\QueryFactory;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -44,13 +43,6 @@ class MediaSourceService {
   protected $languageManager;
 
   /**
-   * Entity query.
-   *
-   * @var \Drupal\Core\Entity\Query\QueryFactory
-   */
-  protected $entityQuery;
-
-  /**
    * File system service.
    *
    * @var \Drupal\Core\File\FileSystemInterface
@@ -73,8 +65,6 @@ class MediaSourceService {
    *   The current user.
    * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
    *   Language manager.
-   * @param \Drupal\Core\Entity\Query\QueryFactory $entity_query
-   *   Entity query.
    * @param \Drupal\Core\File\FileSystemInterface $file_system
    *   File system service.
    * @param \Drupal\islandora\IslandoraUtils $islandora_utils
@@ -84,14 +74,12 @@ class MediaSourceService {
     EntityTypeManagerInterface $entity_type_manager,
     AccountInterface $account,
     LanguageManagerInterface $language_manager,
-    QueryFactory $entity_query,
     FileSystemInterface $file_system,
     IslandoraUtils $islandora_utils
   ) {
     $this->entityTypeManager = $entity_type_manager;
     $this->account = $account;
     $this->languageManager = $language_manager;
-    $this->entityQuery = $entity_query;
     $this->fileSystem = $file_system;
     $this->islandoraUtils = $islandora_utils;
   }
@@ -293,7 +281,7 @@ class MediaSourceService {
       }
 
       $directory = $this->fileSystem->dirname($content_location);
-      if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+      if (!$this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
         throw new HttpException(500, "The destination directory does not exist, could not be created, or is not writable");
       }
 

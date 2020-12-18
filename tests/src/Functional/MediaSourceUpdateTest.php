@@ -84,7 +84,7 @@ class MediaSourceUpdateTest extends IslandoraFunctionalTestBase {
 
     // Update without Content-Type header should fail with 400.
     $options = [
-      'auth' => [$this->account->getUsername(), $this->account->pass_raw],
+      'auth' => [$this->account->getAccountName(), $this->account->pass_raw],
       'http_errors' => FALSE,
       'body' => $file_contents,
     ];
@@ -93,7 +93,7 @@ class MediaSourceUpdateTest extends IslandoraFunctionalTestBase {
 
     // Update without body should fail with 400.
     $options = [
-      'auth' => [$this->account->getUsername(), $this->account->pass_raw],
+      'auth' => [$this->account->getAccountName(), $this->account->pass_raw],
       'http_errors' => FALSE,
       'headers' => [
         'Content-Type' => 'text/plain',
@@ -104,7 +104,7 @@ class MediaSourceUpdateTest extends IslandoraFunctionalTestBase {
 
     // Should be successful.
     $options = [
-      'auth' => [$this->account->getUsername(), $this->account->pass_raw],
+      'auth' => [$this->account->getAccountName(), $this->account->pass_raw],
       'http_errors' => FALSE,
       'headers' => [
         'Content-Type' => 'text/plain',
@@ -116,10 +116,10 @@ class MediaSourceUpdateTest extends IslandoraFunctionalTestBase {
 
     // GET the media and compare file and metadata.
     $options = [
-      'auth' => [$this->account->getUsername(), $this->account->pass_raw],
+      'auth' => [$this->account->getAccountName(), $this->account->pass_raw],
       'http_errors' => FALSE,
     ];
-    $url = $this->media->url('canonical', ['absolute' => TRUE]);
+    $url = $this->media->toUrl('canonical', ['absolute' => TRUE])->toString();
     $response = $client->request('GET', $url . '?_format=json', $options);
     $updated = json_decode($response->getBody(), TRUE);
 

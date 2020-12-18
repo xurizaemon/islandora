@@ -144,7 +144,7 @@ class IslandoraSettingsForm extends ConfigFormBase {
       '#title' => $this->t('JWT Expiry'),
       '#default_value' => $config->get(self::JWT_EXPIRY),
       '#description' => $this->t('A positive time interval expression. Eg: "60 secs", "2 days", "10 hours", "7 weeks". Be sure you provide the time units (@unit), plurals are accepted.',
-        ['@unit' => implode(self::TIME_INTERVALS, ", ")]
+        ['@unit' => implode(", ", self::TIME_INTERVALS)]
       ),
     ];
 
@@ -155,7 +155,12 @@ class IslandoraSettingsForm extends ConfigFormBase {
     ];
 
     $flysystem_config = Settings::get('flysystem');
-    $fedora_url = $flysystem_config['fedora']['config']['root'];
+    if ($flysystem_config != NULL) {
+      $fedora_url = $flysystem_config['fedora']['config']['root'];
+    }
+    else {
+      $fedora_url = NULL;
+    }
 
     $form[self::FEDORA_URL] = [
       '#type' => 'textfield',
@@ -255,11 +260,11 @@ class IslandoraSettingsForm extends ConfigFormBase {
           );
     }
     else {
-      if (!preg_match("/\b(" . implode(self::TIME_INTERVALS, "|") . ")s?\b/", $expiry)) {
+      if (!preg_match("/\b(" . implode("|", self::TIME_INTERVALS) . ")s?\b/", $expiry)) {
         $form_state->setErrorByName(
           self::JWT_EXPIRY,
           $this->t("No time interval found, please include one of (@int). Plurals are also accepted.",
-            ['@int' => implode(self::TIME_INTERVALS, ", ")]
+            ['@int' => implode(", ", self::TIME_INTERVALS)]
           )
         );
       }

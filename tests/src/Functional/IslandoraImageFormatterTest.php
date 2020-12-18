@@ -34,7 +34,7 @@ class IslandoraImageFormatterTest extends IslandoraFunctionalTestBase {
       'type' => 'islandora_image',
       'settings' => ['image_style' => NULL, 'image_link' => 'content'],
     ];
-    $display = entity_get_display('media', $testImageMediaType->id(), 'default');
+    $display = $this->container->get('entity_display.repository')->getViewDisplay('media', $testImageMediaType->id(), 'default');
     $display->setComponent('field_media_image', $display_options)
       ->removeComponent('created')
       ->removeComponent('uid')
@@ -81,8 +81,8 @@ class IslandoraImageFormatterTest extends IslandoraFunctionalTestBase {
     $elements = $this->xpath(
       '//a[@href=:path]/img[@src=:url and @alt=:alt and @title=:title]',
       [
-        ':path' => $node->url(),
-        ':url' => file_url_transform_relative(file_create_url($file->getFileUri())),
+        ':path' => $node->toUrl()->toString(),
+        ':url' => $file->createFileUrl(),
         ':alt' => 'Some Alt',
         ':title' => 'Some Title',
       ]

@@ -32,8 +32,8 @@ class GenerateImageDerivative extends AbstractGenerateDerivative {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    $form['mimetype']['#description'] = t('Mimetype to convert to (e.g. image/jpeg, image/png, etc...)');
-    $form['args']['#description'] = t('Additional command line arguments for ImageMagick convert (e.g. -resize 50%');
+    $form['mimetype']['#description'] = $this->t('Mimetype to convert to (e.g. image/jpeg, image/png, etc...)');
+    $form['args']['#description'] = $this->t('Additional command line arguments for ImageMagick convert (e.g. -resize 50%');
     return $form;
   }
 
@@ -48,7 +48,7 @@ class GenerateImageDerivative extends AbstractGenerateDerivative {
     if ($exploded_mime[0] != "image") {
       $form_state->setErrorByName(
         'mimetype',
-        t('Please enter an image mimetype (e.g. image/jpeg, image/png, etc...)')
+        $this->t('Please enter an image mimetype (e.g. image/jpeg, image/png, etc...)')
       );
     }
   }

@@ -3,7 +3,6 @@
 namespace Drupal\Tests\islandora\Kernel;
 
 use Drupal\islandora\Flysystem\Adapter\FedoraAdapter;
-use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\Response;
 use Islandora\Chullo\IFedoraApi;
 use League\Flysystem\Config;
@@ -17,6 +16,31 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
  * @coversDefaultClass \Drupal\islandora\Flysystem\Adapter\FedoraAdapter
  */
 class FedoraAdapterTest extends IslandoraKernelTestBase {
+
+  /**
+   * Shared functionality for an adapter.
+   */
+  protected function createAdapterBase() {
+    $prophecy = $this->prophesize(Response::class);
+    $prophecy->getStatusCode()->willReturn(200);
+    $prophecy->getHeader('Last-Modified')
+      ->willReturn(["Wed, 25 Jul 2018 17:42:04 GMT"]);
+    $prophecy->getHeader('Link')
+      ->willReturn([
+        '<http://www.w3.org/ns/ldp#Resource>;rel="type"',
+        '<http://www.w3.org/ns/ldp#NonRDFSource>;rel="type"',
+      ]);
+    $prophecy->getHeader('Content-Type')->willReturn(['text/plain']);
+    $prophecy->getHeader('Content-Length')->willReturn([strlen("DERP")]);
+    // phpcs:disable
+    if (class_exists(\GuzzleHttp\Psr7\Utils::class)) {
+      $prophecy->getBody()->willReturn(\GuzzleHttp\Psr7\Utils::streamFor("DERP"));
+    } else {
+      $prophecy->getBody()->willReturn(\GuzzleHttp\Psr7\stream_for("DERP"));
+    }
+    // phpcs:enable
+    return $prophecy;
+  }
 
   /**
    * Mocks up an adapter for Fedora calls that return 404.
@@ -41,18 +65,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
    * Mocks up an adapter for Fedora LDP-NR response.
    */
   protected function createAdapterForFile() {
-    $prophecy = $this->prophesize(Response::class);
-    $prophecy->getStatusCode()->willReturn(200);
-    $prophecy->getHeader('Last-Modified')
-      ->willReturn(["Wed, 25 Jul 2018 17:42:04 GMT"]);
-    $prophecy->getHeader('Link')
-      ->willReturn([
-        '<http://www.w3.org/ns/ldp#Resource>;rel="type"',
-        '<http://www.w3.org/ns/ldp#NonRDFSource>;rel="type"',
-      ]);
-    $prophecy->getHeader('Content-Type')->willReturn(['text/plain']);
-    $prophecy->getHeader('Content-Length')->willReturn([strlen("DERP")]);
-    $prophecy->getBody()->willReturn(PSR7\stream_for("DERP"));
+    $prophecy = $this->createAdapterBase();
     $response = $prophecy->reveal();
 
     $prophecy = $this->prophesize(IFedoraApi::class);
@@ -107,18 +120,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $fedora_prophecy->saveResource('', '', Argument::any())
       ->willReturn($prophecy->reveal());
 
-    $prophecy = $this->prophesize(Response::class);
-    $prophecy->getStatusCode()->willReturn(200);
-    $prophecy->getHeader('Last-Modified')
-      ->willReturn(["Wed, 25 Jul 2018 17:42:04 GMT"]);
-    $prophecy->getHeader('Link')
-      ->willReturn([
-        '<http://www.w3.org/ns/ldp#Resource>;rel="type"',
-        '<http://www.w3.org/ns/ldp#NonRDFSource>;rel="type"',
-      ]);
-    $prophecy->getHeader('Content-Type')->willReturn(['text/plain']);
-    $prophecy->getHeader('Content-Length')->willReturn([strlen("DERP")]);
-    $prophecy->getBody()->willReturn(PSR7\stream_for("DERP"));
+    $prophecy = $this->createAdapterBase();
 
     $fedora_prophecy->getResourceHeaders('')->willReturn($prophecy->reveal());
 
@@ -599,18 +601,8 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
    * @covers \Drupal\islandora\Flysystem\Adapter\FedoraAdapter::copy
    */
   public function testRename() {
-    $prophecy = $this->prophesize(Response::class);
-    $prophecy->getStatusCode()->willReturn(200);
-    $prophecy->getHeader('Last-Modified')
-      ->willReturn(["Wed, 25 Jul 2018 17:42:04 GMT"]);
-    $prophecy->getHeader('Link')
-      ->willReturn([
-        '<http://www.w3.org/ns/ldp#Resource>;rel="type"',
-        '<http://www.w3.org/ns/ldp#NonRDFSource>;rel="type"',
-      ]);
-    $prophecy->getHeader('Content-Type')->willReturn(['text/plain']);
-    $prophecy->getHeader('Content-Length')->willReturn([strlen("DERP")]);
-    $prophecy->getBody()->willReturn(PSR7\stream_for("DERP"));
+    $prophecy = $this->createAdapterBase();
+
     $response = $prophecy->reveal();
 
     $fedora_prophecy = $this->prophesize(IFedoraApi::class);
@@ -620,8 +612,6 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $prophecy->getStatusCode()->willReturn(201);
     $response = $prophecy->reveal();
 
-    $date = new \DateTime();
-    $timestamp = $date->format("D, d M Y H:i:s O");
     $fedora_prophecy->createVersion('',
       Argument::any(), NULL,
       Argument::any())->willReturn($prophecy->reveal());

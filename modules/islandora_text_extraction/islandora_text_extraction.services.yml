@@ -5,4 +5,3 @@ services:
   islandora_text_extraction.search_reindexer:
     class: Drupal\islandora_text_extraction\SearchReindexer
     arguments: ['@islandora.utils', '@logger.channel.islandora_text_extraction']
-

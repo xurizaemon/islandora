@@ -4,6 +4,7 @@ namespace Drupal\islandora\Plugin\Action;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\jwt\Authentication\Provider\JwtAuth;
 use Drupal\islandora\EventGenerator\EmitEvent;
@@ -51,6 +52,8 @@ class EmitMediaEvent extends EmitEvent {
    *   JWT Auth client.
    * @param \Drupal\islandora\MediaSource\MediaSourceService $media_source
    *   Media source service.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger.
    */
   public function __construct(
     array $configuration,
@@ -61,7 +64,8 @@ class EmitMediaEvent extends EmitEvent {
     EventGeneratorInterface $event_generator,
     StatefulStomp $stomp,
     JwtAuth $auth,
-    MediaSourceService $media_source
+    MediaSourceService $media_source,
+    MessengerInterface $messenger
   ) {
     parent::__construct(
       $configuration,
@@ -71,7 +75,8 @@ class EmitMediaEvent extends EmitEvent {
       $entity_type_manager,
       $event_generator,
       $stomp,
-      $auth
+      $auth,
+      $messenger
     );
     $this->mediaSource = $media_source;
   }
@@ -89,7 +94,8 @@ class EmitMediaEvent extends EmitEvent {
       $container->get('islandora.eventgenerator'),
       $container->get('islandora.stomp'),
       $container->get('jwt.authentication.jwt'),
-      $container->get('islandora.media_source_service')
+      $container->get('islandora.media_source_service'),
+      $container->get('messenger')
     );
   }
 

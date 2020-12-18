@@ -96,7 +96,7 @@ class IslandoraImageFormatter extends ImageFormatter {
       $configuration['view_mode'],
       $configuration['third_party_settings'],
       $container->get('current_user'),
-      $container->get('entity.manager')->getStorage('image_style'),
+      $container->get('entity_type.manager')->getStorage('image_style'),
       $container->get('islandora.utils')
     );
   }
@@ -124,7 +124,7 @@ class IslandoraImageFormatter extends ImageFormatter {
       return $elements;
     }
 
-    $url = $node->urlInfo();
+    $url = $node->toUrl();
 
     foreach ($elements as &$element) {
       $element['#url'] = $url;

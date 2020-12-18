@@ -2,27 +2,28 @@ name: 'Islandora Core Feature'
 description: 'Minimum configuration required for Islandora.'
 type: module
 core: 8.x
+core_version_requirement: ^8 || ^9
 dependencies:
-  - basic_auth
-  - content_translation
-  - eva
-  - features
-  - field
-  - file
-  - filehash
-  - image
-  - islandora
-  - jsonld
-  - jwt
-  - language
-  - link
-  - media
-  - migrate_plus
-  - node
-  - rest
-  - serialization
-  - system
-  - taxonomy
-  - user
-  - views
+  - drupal:basic_auth
+  - drupal:content_translation
+  - drupal:eva
+  - drupal:features
+  - drupal:field
+  - drupal:file
+  - drupal:filehash
+  - drupal:image
+  - drupal:islandora
+  - drupal:jsonld
+  - drupal:jwt
+  - drupal:language
+  - drupal:link
+  - drupal:media
+  - drupal:migrate_plus
+  - drupal:node
+  - drupal:rest
+  - drupal:serialization
+  - drupal:system
+  - drupal:taxonomy
+  - drupal:user
+  - drupal:views
 package: Islandora

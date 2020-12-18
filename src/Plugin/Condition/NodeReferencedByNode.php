@@ -85,11 +85,11 @@ class NodeReferencedByNode extends ConditionPluginBase implements ContainerFacto
     $options = array_combine($node_fields, $node_fields);
     $form['reference_field'] = [
       '#type' => 'select',
-      '#title' => t('Field to check for reference to this node'),
+      '#title' => $this->t('Field to check for reference to this node'),
       '#options' => $options,
       '#default_value' => $this->configuration['reference_field'],
       '#required' => TRUE,
-      '#description' => t("Machine name of field that should be checked for references to this node."),
+      '#description' => $this->t("Machine name of field that should be checked for references to this node."),
     ];
 
     return parent::buildConfigurationForm($form, $form_state);

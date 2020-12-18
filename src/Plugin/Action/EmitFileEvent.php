@@ -5,8 +5,10 @@ namespace Drupal\islandora\Plugin\Action;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Site\Settings;
+use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\jwt\Authentication\Provider\JwtAuth;
 use Drupal\islandora\EventGenerator\EmitEvent;
 use Drupal\islandora\EventGenerator\EventGeneratorInterface;
@@ -52,6 +54,8 @@ class EmitFileEvent extends EmitEvent {
    *   JWT Auth client.
    * @param \Drupal\Core\File\FileSystemInterface $file_system
    *   File system service.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger.
    */
   public function __construct(
     array $configuration,
@@ -62,7 +66,8 @@ class EmitFileEvent extends EmitEvent {
     EventGeneratorInterface $event_generator,
     StatefulStomp $stomp,
     JwtAuth $auth,
-    FileSystemInterface $file_system
+    FileSystemInterface $file_system,
+    MessengerInterface $messenger
   ) {
     parent::__construct(
       $configuration,
@@ -72,7 +77,8 @@ class EmitFileEvent extends EmitEvent {
       $entity_type_manager,
       $event_generator,
       $stomp,
-      $auth
+      $auth,
+      $messenger
     );
     $this->fileSystem = $file_system;
   }
@@ -90,7 +96,8 @@ class EmitFileEvent extends EmitEvent {
       $container->get('islandora.eventgenerator'),
       $container->get('islandora.stomp'),
       $container->get('jwt.authentication.jwt'),
-      $container->get('file_system')
+      $container->get('file_system'),
+      $container->get('messenger')
     );
   }
 
@@ -99,7 +106,7 @@ class EmitFileEvent extends EmitEvent {
    */
   protected function generateData(EntityInterface $entity) {
     $uri = $entity->getFileUri();
-    $scheme = $this->fileSystem->uriScheme($uri);
+    $scheme = StreamWrapperManager::getScheme($uri);
     $flysystem_config = Settings::get('flysystem');
 
     $data = parent::generateData($entity);

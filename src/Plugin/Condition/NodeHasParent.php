@@ -82,10 +82,10 @@ class NodeHasParent extends ConditionPluginBase implements ContainerFactoryPlugi
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form['parent_nid'] = [
       '#type' => 'entity_autocomplete',
-      '#title' => t('Parent node'),
+      '#title' => $this->t('Parent node'),
       '#default_value' => $this->entityTypeManager->getStorage('node')->load($this->configuration['parent_nid']),
       '#required' => TRUE,
-      '#description' => t("Can be a collection node or a compound object."),
+      '#description' => $this->t("Can be a collection node or a compound object."),
       '#target_type' => 'node',
     ];
     $field_map = \Drupal::service('entity_field.manager')->getFieldMapByFieldType('entity_reference');
@@ -93,11 +93,11 @@ class NodeHasParent extends ConditionPluginBase implements ContainerFactoryPlugi
     $options = array_combine($node_fields, $node_fields);
     $form['parent_reference_field'] = [
       '#type' => 'select',
-      '#title' => t('Field that contains reference to parents'),
+      '#title' => $this->t('Field that contains reference to parents'),
       '#options' => $options,
       '#default_value' => $this->configuration['parent_reference_field'],
       '#required' => TRUE,
-      '#description' => t("Machine name of field that contains references to parent node."),
+      '#description' => $this->t("Machine name of field that contains references to parent node."),
     ];
 
     return parent::buildConfigurationForm($form, $form_state);

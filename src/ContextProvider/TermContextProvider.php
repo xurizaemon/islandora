@@ -3,9 +3,8 @@
 namespace Drupal\islandora\ContextProvider;
 
 use Drupal\taxonomy\TermInterface;
-use Drupal\Core\Plugin\Context\Context;
-use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\ContextProviderInterface;
+use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
@@ -36,8 +35,7 @@ class TermContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getRuntimeContexts(array $unqualified_context_ids) {
-    $context_definition = new ContextDefinition('entity:taxonomy_term', NULL, FALSE);
-    $context = new Context($context_definition, $this->term);
+    $context = EntityContext::fromEntity($this->term);
     return ['@islandora.taxonomy_term_route_context_provider:taxonomy_term' => $context];
   }
 
@@ -45,7 +43,7 @@ class TermContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getAvailableContexts() {
-    $context = new Context(new ContextDefinition('entity:taxonomy_term', $this->t('Term from entity hook')));
+    $context = EntityContext::fromEntityTypeId('taxonomy_term', $this->t('Term from entity hook'));
     return ['@islandora.taxonomy_term_route_context_provider:taxonomy_term' => $context];
   }
 

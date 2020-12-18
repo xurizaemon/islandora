@@ -33,8 +33,8 @@ class GenerateVideoDerivative extends AbstractGenerateDerivative {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    $form['mimetype']['#description'] = t('Mimetype to convert to (e.g. video/mp4, video/quicktime, etc...)');
-    $form['args']['#description'] = t('Additional command line parameters for FFMpeg');
+    $form['mimetype']['#description'] = $this->t('Mimetype to convert to (e.g. video/mp4, video/quicktime, etc...)');
+    $form['args']['#description'] = $this->t('Additional command line parameters for FFMpeg');
     return $form;
   }
 
@@ -47,7 +47,7 @@ class GenerateVideoDerivative extends AbstractGenerateDerivative {
     if ($exploded_mime[0] != 'video') {
       $form_state->setErrorByName(
         'mimetype',
-        t('Please enter a video mimetype (e.g. video/mp4, video/quicktime, etc...)')
+        $this->t('Please enter a video mimetype (e.g. video/mp4, video/quicktime, etc...)')
       );
     }
   }

@@ -44,7 +44,7 @@ class EmitNodeEventTest extends IslandoraFunctionalTestBase {
     $this->addCondition('test', 'content_entity_type');
     $this->getSession()->getPage()->checkField("edit-conditions-content-entity-type-types-node");
     $this->getSession()->getPage()->findById("edit-conditions-content-entity-type-context-mapping-node")->selectOption("@node.node_route_context:node");
-    $this->getSession()->getPage()->pressButton(t('Save and continue'));
+    $this->getSession()->getPage()->pressButton($this->t('Save and continue'));
 
     $this->addPresetReaction('test', 'index', $action_id);
     $this->assertSession()->statusCodeEquals(200);
@@ -68,7 +68,7 @@ class EmitNodeEventTest extends IslandoraFunctionalTestBase {
   protected function createEmitAction($entity_type, $event_type) {
     $this->drupalGet('admin/config/system/actions');
     $this->getSession()->getPage()->findById("edit-action")->selectOption("Emit a $entity_type event to a queue/topic");
-    $this->getSession()->getPage()->pressButton(t('Create'));
+    $this->getSession()->getPage()->pressButton($this->t('Create'));
     $this->assertSession()->statusCodeEquals(200);
 
     $action_id = "emit_" . $entity_type . "_" . lcfirst($event_type);
@@ -76,7 +76,7 @@ class EmitNodeEventTest extends IslandoraFunctionalTestBase {
     $this->getSession()->getPage()->fillField('edit-id', $action_id);
     $this->getSession()->getPage()->fillField('edit-queue', "emit-$entity_type-" . lcfirst($event_type));
     $this->getSession()->getPage()->findById("edit-event")->selectOption($event_type);
-    $this->getSession()->getPage()->pressButton(t('Save'));
+    $this->getSession()->getPage()->pressButton($this->t('Save'));
     $this->assertSession()->statusCodeEquals(200);
 
     return $action_id;
@@ -102,8 +102,7 @@ class EmitNodeEventTest extends IslandoraFunctionalTestBase {
           "Authorization header must be set"
         );
         $matches = [];
-        $this->assertTrue(
-          preg_match('/^Bearer (.*)/', $headers['Authorization'], $matches),
+        $this->assertTrue((boolean) preg_match('/^Bearer(\s*.*)/', $headers['Authorization'], $matches),
           "Authorization header must be a bearer token"
         );
         $this->assertTrue(

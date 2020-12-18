@@ -4,8 +4,9 @@ namespace Drupal\islandora\ContextProvider;
 
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Plugin\Context\Context;
-use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\ContextProviderInterface;
+use Drupal\Core\Plugin\Context\EntityContext;
+use Drupal\Core\Plugin\Context\EntityContextDefinition;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\media\Entity\Media;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -38,8 +39,7 @@ class MediaRouteContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getRuntimeContexts(array $unqualified_context_ids) {
-    $result = [];
-    $context_definition = new ContextDefinition('entity:media', NULL, FALSE);
+    $context_definition = EntityContextDefinition::fromEntityTypeId('media')->setLabel(NULL)->setRequired(FALSE);
     $value = NULL;
 
     // Hack the media out of the route.
@@ -70,7 +70,7 @@ class MediaRouteContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getAvailableContexts() {
-    $context = new Context(new ContextDefinition('entity:media', $this->t('Media from URL')));
+    $context = EntityContext::fromEntityType(\Drupal::entityTypeManager()->getDefinition('media'), $this->t('Media from URL'));
     return ['media' => $context];
   }
 

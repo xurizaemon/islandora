@@ -4,8 +4,9 @@ namespace Drupal\islandora\ContextProvider;
 
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Plugin\Context\Context;
-use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\ContextProviderInterface;
+use Drupal\Core\Plugin\Context\EntityContext;
+use Drupal\Core\Plugin\Context\EntityContextDefinition;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
@@ -37,7 +38,8 @@ class FileRouteContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getRuntimeContexts(array $unqualified_context_ids) {
-    $context_definition = new ContextDefinition('entity:file', NULL, FALSE);
+    $context_definition = EntityContextDefinition::fromEntityTypeId('file')->setLabel(NULL)->setRequired(FALSE);
+
     $value = NULL;
 
     // Hack the file out of the route.
@@ -64,7 +66,7 @@ class FileRouteContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getAvailableContexts() {
-    $context = new Context(new ContextDefinition('entity:file', $this->t('File from URL')));
+    $context = EntityContext::fromEntityTypeId('file', $this->t('File from URL'));
     return ['file' => $context];
   }
 

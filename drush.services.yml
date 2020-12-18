@@ -1,5 +1,6 @@
 services:
   islandora.commands:
     class: \Drupal\islandora\Commands\IslandoraCommands
+    arguments: ['@entity_type.manager', '@current_user', '@account_switcher']
     tags:
       - { name: drush.command }

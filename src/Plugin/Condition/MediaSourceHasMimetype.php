@@ -12,7 +12,7 @@ use Drupal\file\Entity\File;
  * @Condition(
  *   id = "media_source_mimetype",
  *   label = @Translation("Media Source Mimetype"),
- *   context = {
+ *   context_definitions = {
  *     "media" = @ContextDefinition("entity:media", required = FALSE, label = @Translation("Media"))
  *   }
  * )

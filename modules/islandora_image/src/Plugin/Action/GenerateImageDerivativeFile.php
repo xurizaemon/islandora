@@ -25,7 +25,7 @@ class GenerateImageDerivativeFile extends AbstractGenerateDerivativeMediaFile {
     $config['mimetype'] = 'application/xml';
     $config['queue'] = 'islandora-connector-houdini';
     $config['destination_media_type'] = 'file';
-    $config['scheme'] = file_default_scheme();
+    $config['scheme'] = $this->config->get('default_scheme');
     return $config;
   }
 
@@ -34,7 +34,7 @@ class GenerateImageDerivativeFile extends AbstractGenerateDerivativeMediaFile {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    $form['mimetype']['#description'] = t('Mimetype to convert to (e.g. application/xml, etc...)');
+    $form['mimetype']['#description'] = $this->t('Mimetype to convert to (e.g. application/xml, etc...)');
     $form['mimetype']['#value'] = 'image/jpeg';
     $form['mimetype']['#type'] = 'hidden';
     return $form;

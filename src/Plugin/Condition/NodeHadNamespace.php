@@ -95,11 +95,11 @@ class NodeHadNamespace extends ConditionPluginBase implements ContainerFactoryPl
     $options = array_combine($node_fields, $node_fields);
     $form['pid_field'] = [
       '#type' => 'select',
-      '#title' => t('Field that contains the PID'),
+      '#title' => $this->t('Field that contains the PID'),
       '#options' => $options,
       '#default_value' => $this->configuration['pid_field'],
       '#required' => TRUE,
-      '#description' => t("Machine name of the field that contains the PID."),
+      '#description' => $this->t("Machine name of the field that contains the PID."),
     ];
 
     return parent::buildConfigurationForm($form, $form_state);

@@ -3,9 +3,8 @@
 namespace Drupal\islandora\ContextProvider;
 
 use Drupal\media\MediaInterface;
-use Drupal\Core\Plugin\Context\Context;
-use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\Plugin\Context\ContextProviderInterface;
+use Drupal\Core\Plugin\Context\EntityContext;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
@@ -36,8 +35,7 @@ class MediaContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getRuntimeContexts(array $unqualified_context_ids) {
-    $context_definition = new ContextDefinition('entity:media', NULL, FALSE);
-    $context = new Context($context_definition, $this->media);
+    $context = EntityContext::fromEntity($this->media);
     return ['@islandora.media_route_context_provider:media' => $context];
   }
 
@@ -45,7 +43,7 @@ class MediaContextProvider implements ContextProviderInterface {
    * {@inheritdoc}
    */
   public function getAvailableContexts() {
-    $context = new Context(new ContextDefinition('entity:media', $this->t('Media from entity hook')));
+    $context = EntityContext::fromEntityType(\Drupal::entityTypeManager()->getDefinition('media'), $this->t('Media from URL'));
     return ['@islandora.media_route_context_provider:media' => $context];
   }
 

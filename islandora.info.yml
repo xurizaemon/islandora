@@ -5,30 +5,31 @@ description: "Islandora Core"
 type: module
 package: Islandora
 core: 8.x
+core_version_requirement: ^8 || ^9
 dependencies:
-  - block
-  - node
-  - path
-  - text
-  - options
-  - link
-  - jsonld
-  - search_api
-  - jwt
-  - rest
-  - filehash
-  - basic_auth
-  - context_ui
-  - action
-  - eva
-  - taxonomy
-  - views_ui
-  - media
-  - prepopulate
-  - features_ui
-  - migrate_tools
-  - migrate_source_csv
-  - content_translation
-  - flysystem
-  - token
-  - file_replace
+  - drupal:block
+  - drupal:node
+  - drupal:path
+  - drupal:text
+  - drupal:options
+  - drupal:link
+  - drupal:jsonld
+  - drupal:search_api
+  - drupal:jwt
+  - drupal:rest
+  - drupal:filehash
+  - drupal:basic_auth
+  - drupal:context_ui
+  - drupal:action
+  - drupal:eva
+  - drupal:taxonomy
+  - drupal:views_ui
+  - drupal:media
+  - drupal:prepopulate
+  - drupal:features_ui
+  - drupal:migrate_tools
+  - drupal:migrate_source_csv
+  - drupal:content_translation
+  - drupal:flysystem
+  - drupal:token
+  - drupal:file_replace

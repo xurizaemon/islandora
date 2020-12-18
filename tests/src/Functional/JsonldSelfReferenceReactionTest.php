@@ -51,7 +51,7 @@ class JsonldSelfReferenceReactionTest extends IslandoraFunctionalTestBase {
 
     $this->postNodeAddForm('test_type',
       ['title[0][value]' => 'Test Node'],
-      t('Save'));
+      $this->t('Save'));
     $this->assertSession()->pageTextContains("Test Node");
     $url = $this->getUrl();
 
@@ -153,8 +153,8 @@ class JsonldSelfReferenceReactionTest extends IslandoraFunctionalTestBase {
     $reaction_id = 'islandora_map_uri_predicate';
 
     list($file, $media) = $this->makeMediaAndFile($account);
-    $media_url = $media->url('canonical', ['absolute' => TRUE]);
-    $file_url = $file->url('canonical', ['absolute' => TRUE]);
+    $media_url = $media->toUrl('canonical', ['absolute' => TRUE])->toString();
+    $file_url = $file->createFileUrl(FALSE);
 
     $this->drupalGet($media_url);
     $this->assertSession()->statusCodeEquals(200);

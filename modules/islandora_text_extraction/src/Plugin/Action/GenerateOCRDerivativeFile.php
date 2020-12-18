@@ -27,7 +27,7 @@ class GenerateOCRDerivativeFile extends AbstractGenerateDerivativeMediaFile {
     $config['mimetype'] = 'application/xml';
     $config['queue'] = 'islandora-connector-ocr';
     $config['destination_media_type'] = 'file';
-    $config['scheme'] = file_default_scheme();
+    $config['scheme'] = $this->config->get('default_scheme');
     $config['destination_text_field_name'] = '';
     return $config;
   }
@@ -40,7 +40,7 @@ class GenerateOCRDerivativeFile extends AbstractGenerateDerivativeMediaFile {
     $file_fields = $map['media'];
     $field_options = array_combine(array_keys($file_fields), array_keys($file_fields));
     $form = parent::buildConfigurationForm($form, $form_state);
-    $form['mimetype']['#description'] = t('Mimetype to convert to (e.g. application/xml, etc...)');
+    $form['mimetype']['#description'] = $this->t('Mimetype to convert to (e.g. application/xml, etc...)');
     $form['mimetype']['#value'] = 'text/plain';
     $form['mimetype']['#type'] = 'hidden';
     $position = array_search('destination_field_name', array_keys($form));
@@ -70,7 +70,7 @@ class GenerateOCRDerivativeFile extends AbstractGenerateDerivativeMediaFile {
     if ($exploded_mime[0] != 'text') {
       $form_state->setErrorByName(
         'mimetype',
-        t('Please enter file mimetype (e.g. application/xml.)')
+        $this->t('Please enter file mimetype (e.g. application/xml.)')
       );
     }
   }

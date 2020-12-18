@@ -3,11 +3,13 @@
 namespace Drupal\islandora_text_extraction\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\File\FileSystem;
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\media\Entity\Media;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Drupal\Core\File\FileSystem;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Controller for Media Source.
@@ -93,10 +95,10 @@ class MediaSourceController extends ControllerBase {
 
     if ($contents) {
       $directory = $this->fileSystem->dirname($content_location);
-      if (!file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS)) {
+      if (!$this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
         throw new HttpException(500, "The destination directory does not exist, could not be created, or is not writable");
       }
-      $file = file_save_data($contents, $content_location, FILE_EXISTS_REPLACE);
+      $file = file_save_data($contents, $content_location, FileSystemInterface::EXISTS_REPLACE);
       if ($media->hasField($destination_field)) {
         $media->{$destination_field}->setValue([
           'target_id' => $file->id(),

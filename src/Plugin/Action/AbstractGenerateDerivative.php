@@ -3,117 +3,13 @@
 namespace Drupal\islandora\Plugin\Action;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
-use Drupal\islandora\IslandoraUtils;
-use Drupal\islandora\EventGenerator\EmitEvent;
-use Drupal\islandora\EventGenerator\EventGeneratorInterface;
-use Drupal\islandora\MediaSource\MediaSourceService;
-use Drupal\jwt\Authentication\Provider\JwtAuth;
-use Drupal\token\TokenInterface;
-use Stomp\StatefulStomp;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Emits a Node event.
  */
-class AbstractGenerateDerivative extends EmitEvent {
-
-  /**
-   * Islandora utility functions.
-   *
-   * @var \Drupal\islandora\IslandoraUtils
-   */
-  protected $utils;
-
-  /**
-   * Media source service.
-   *
-   * @var \Drupal\islandora\MediaSource\MediaSourceService
-   */
-  protected $mediaSource;
-
-  /**
-   * Token replacement service.
-   *
-   * @var \Drupal\token\TokenInterface
-   */
-  protected $token;
-
-  /**
-   * Constructs a EmitEvent action.
-   *
-   * @param array $configuration
-   *   A configuration array containing information about the plugin instance.
-   * @param string $plugin_id
-   *   The plugin_id for the plugin instance.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   Current user.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   Entity type manager.
-   * @param \Drupal\islandora\EventGenerator\EventGeneratorInterface $event_generator
-   *   EventGenerator service to serialize AS2 events.
-   * @param \Stomp\StatefulStomp $stomp
-   *   Stomp client.
-   * @param \Drupal\jwt\Authentication\Provider\JwtAuth $auth
-   *   JWT Auth client.
-   * @param \Drupal\islandora\IslandoraUtils $utils
-   *   Islandora utility functions.
-   * @param \Drupal\islandora\MediaSource\MediaSourceService $media_source
-   *   Media source service.
-   * @param \Drupal\token\TokenInterface $token
-   *   Token service.
-   */
-  public function __construct(
-    array $configuration,
-    $plugin_id,
-    $plugin_definition,
-    AccountInterface $account,
-    EntityTypeManagerInterface $entity_type_manager,
-    EventGeneratorInterface $event_generator,
-    StatefulStomp $stomp,
-    JwtAuth $auth,
-    IslandoraUtils $utils,
-    MediaSourceService $media_source,
-    TokenInterface $token
-  ) {
-    parent::__construct(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $account,
-      $entity_type_manager,
-      $event_generator,
-      $stomp,
-      $auth
-    );
-    $this->utils = $utils;
-    $this->mediaSource = $media_source;
-    $this->token = $token;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('current_user'),
-      $container->get('entity_type.manager'),
-      $container->get('islandora.eventgenerator'),
-      $container->get('islandora.stomp'),
-      $container->get('jwt.authentication.jwt'),
-      $container->get('islandora.utils'),
-      $container->get('islandora.media_source_service'),
-      $container->get('token')
-    );
-  }
+class AbstractGenerateDerivative extends AbstractGenerateDerivativeBase {
 
   /**
    * {@inheritdoc}
@@ -127,7 +23,7 @@ class AbstractGenerateDerivative extends EmitEvent {
       'mimetype' => '',
       'args' => '',
       'destination_media_type' => '',
-      'scheme' => file_default_scheme(),
+      'scheme' => $this->config->get('default_scheme'),
       'path' => '[date:custom:Y]-[date:custom:m]/[node:nid].bin',
     ];
   }
@@ -205,60 +101,60 @@ class AbstractGenerateDerivative extends EmitEvent {
     $form['source_term'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'taxonomy_term',
-      '#title' => t('Source term'),
+      '#title' => $this->t('Source term'),
       '#default_value' => $this->utils->getTermForUri($this->configuration['source_term_uri']),
       '#required' => TRUE,
-      '#description' => t('Term indicating the source media'),
+      '#description' => $this->t('Term indicating the source media'),
     ];
     $form['derivative_term'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'taxonomy_term',
-      '#title' => t('Derivative term'),
+      '#title' => $this->t('Derivative term'),
       '#default_value' => $this->utils->getTermForUri($this->configuration['derivative_term_uri']),
       '#required' => TRUE,
-      '#description' => t('Term indicating the derivative media'),
+      '#description' => $this->t('Term indicating the derivative media'),
     ];
     $form['destination_media_type'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'media_type',
-      '#title' => t('Derivative media type'),
+      '#title' => $this->t('Derivative media type'),
       '#default_value' => $this->getEntityById($this->configuration['destination_media_type']),
       '#required' => TRUE,
-      '#description' => t('The Drupal media type to create with this derivative, can be different than the source'),
+      '#description' => $this->t('The Drupal media type to create with this derivative, can be different than the source'),
     ];
     $form['mimetype'] = [
       '#type' => 'textfield',
-      '#title' => t('Mimetype'),
+      '#title' => $this->t('Mimetype'),
       '#default_value' => $this->configuration['mimetype'],
       '#required' => TRUE,
       '#rows' => '8',
-      '#description' => t('Mimetype to convert to (e.g. image/jpeg, video/mp4, etc...)'),
+      '#description' => $this->t('Mimetype to convert to (e.g. image/jpeg, video/mp4, etc...)'),
     ];
     $form['args'] = [
       '#type' => 'textfield',
-      '#title' => t('Additional arguments'),
+      '#title' => $this->t('Additional arguments'),
       '#default_value' => $this->configuration['args'],
       '#rows' => '8',
-      '#description' => t('Additional command line arguments'),
+      '#description' => $this->t('Additional command line arguments'),
     ];
     $form['scheme'] = [
       '#type' => 'select',
-      '#title' => t('File system'),
+      '#title' => $this->t('File system'),
       '#options' => $scheme_options,
       '#default_value' => $this->configuration['scheme'],
       '#required' => TRUE,
     ];
     $form['path'] = [
       '#type' => 'textfield',
-      '#title' => t('File path'),
+      '#title' => $this->t('File path'),
       '#default_value' => $this->configuration['path'],
-      '#description' => t('Path within the upload destination where files will be stored. Includes the filename and optional extension.'),
+      '#description' => $this->t('Path within the upload destination where files will be stored. Includes the filename and optional extension.'),
     ];
     $form['queue'] = [
       '#type' => 'textfield',
-      '#title' => t('Queue name'),
+      '#title' => $this->t('Queue name'),
       '#default_value' => $this->configuration['queue'],
-      '#description' => t('Queue name to send along to help routing events, CHANGE WITH CARE. Defaults to :queue', [
+      '#description' => $this->t('Queue name to send along to help routing events, CHANGE WITH CARE. Defaults to :queue', [
         ':queue' => $this->defaultConfiguration()['queue'],
       ]),
     ];
@@ -276,14 +172,14 @@ class AbstractGenerateDerivative extends EmitEvent {
     if (count($exploded_mime) != 2) {
       $form_state->setErrorByName(
         'mimetype',
-        t('Please enter a mimetype (e.g. image/jpeg, video/mp4, audio/mp3, etc...)')
+        $this->t('Please enter a mimetype (e.g. image/jpeg, video/mp4, audio/mp3, etc...)')
       );
     }
 
     if (empty($exploded_mime[1])) {
       $form_state->setErrorByName(
         'mimetype',
-        t('Please enter a mimetype (e.g. image/jpeg, video/mp4, audio/mp3, etc...)')
+        $this->t('Please enter a mimetype (e.g. image/jpeg, video/mp4, audio/mp3, etc...)')
       );
     }
   }

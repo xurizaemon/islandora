@@ -263,7 +263,6 @@ abstract class LinkHeaderSubscriber implements EventSubscriberInterface {
     $current_format = $this->requestStack->getCurrentRequest()->query->get('_format');
 
     $links = [];
-    $route_name = $this->routeMatch->getRouteName();
 
     if ($rest_resource_config) {
       $formats = $rest_resource_config->getFormats("GET");

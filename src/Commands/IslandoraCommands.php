@@ -3,8 +3,10 @@
 namespace Drupal\islandora\Commands;
 
 use Consolidation\AnnotatedCommand\CommandData;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Session\AccountProxy;
+use Drupal\Core\Session\AccountSwitcherInterface;
 use Drupal\Core\Session\UserSession;
-use Drupal\user\Entity\User;
 use Drush\Commands\DrushCommands;
 
 /**
@@ -13,6 +15,35 @@ use Drush\Commands\DrushCommands;
  * ... because the --user option was removed from drush 9.
  */
 class IslandoraCommands extends DrushCommands {
+  /**
+   * Entity type manager object.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * Drupal\Core\Session\AccountProxy definition.
+   *
+   * @var \Drupal\Core\Session\AccountProxy
+   */
+  protected $currentUser;
+
+  /**
+   * The account switcher service.
+   *
+   * @var \Drupal\Core\Session\AccountSwitcherInterface
+   */
+  protected $accountSwitcher;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, AccountProxy $current_user, AccountSwitcherInterface $account_switcher) {
+    $this->entityTypeManager = $entity_type_manager;
+    $this->currentUser = $current_user;
+    $this->accountSwitcher = $account_switcher;
+  }
 
   /**
    * Add the userid option.
@@ -56,7 +87,8 @@ class IslandoraCommands extends DrushCommands {
   protected function validateUser(CommandData $commandData) {
     $userid = $commandData->input()->getOption('userid');
     if ($userid) {
-      $account = User::load($userid);
+      $account =
+      $this->entityTypeManager->getStorage('user')->load($userid);
       if (!$account) {
         throw new \Exception("User ID does not match an existing user.");
       }
@@ -87,18 +119,17 @@ class IslandoraCommands extends DrushCommands {
   protected function switchUser(CommandData $commandData) {
     $userid = $commandData->input()->getOption('userid');
     if ($userid) {
-      $account = User::load($userid);
-      $accountSwitcher = \Drupal::service('account_switcher');
+      $account = $this->entityTypeManager->getStorage('user')->load($userid);
       $userSession = new UserSession([
         'uid'   => $account->id(),
-        'name'  => $account->getUsername(),
+        'name'  => $account->getDisplayName(),
         'roles' => $account->getRoles(),
       ]);
-      $accountSwitcher->switchTo($userSession);
+      $this->accountSwitcher->switchTo($userSession);
       $this->logger()->notice(
           dt(
               'Now acting as user ID @id',
-              ['@id' => \Drupal::currentUser()->id()]
+              ['@id' => $this->currentUser->id()]
             )
       );
     }
@@ -127,12 +158,11 @@ class IslandoraCommands extends DrushCommands {
    */
   protected function switchUserBack(CommandData $commandData) {
     if ($commandData->input()->getOption('userid')) {
-      $accountSwitcher = \Drupal::service('account_switcher');
       $this->logger()->notice(dt(
                                   'Switching back from user @uid.',
-                                  ['@uid' => \Drupal::currentUser()->id()]
+                                  ['@uid' => $this->currentUser->id()]
                                 ));
-      $accountSwitcher->switchBack();
+      $this->accountSwitcher->switchBack();
     }
   }
 

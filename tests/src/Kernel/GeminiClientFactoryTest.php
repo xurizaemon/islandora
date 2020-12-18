@@ -8,6 +8,7 @@ use Drupal\islandora\GeminiClientFactory;
 use Islandora\Crayfish\Commons\Client\GeminiClient;
 use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpKernel\Exception\PreconditionFailedHttpException;
 
 /**
  * Tests GeminiClientFactory.
@@ -38,9 +39,9 @@ class GeminiClientFactoryTest extends IslandoraKernelTestBase {
 
   /**
    * @covers ::create
-   * @expectedException \Symfony\Component\HttpKernel\Exception\PreconditionFailedHttpException
    */
   public function testNoUrlBlank() {
+    $this->expectException(PreconditionFailedHttpException::class);
     $prophecy = $this->prophesize(ImmutableConfig::class);
     $prophecy->get(Argument::any())->willReturn('');
     $immutConfig = $prophecy->reveal();
@@ -54,9 +55,9 @@ class GeminiClientFactoryTest extends IslandoraKernelTestBase {
 
   /**
    * @covers ::create
-   * @expectedException \Symfony\Component\HttpKernel\Exception\PreconditionFailedHttpException
    */
   public function testNoUrlNull() {
+    $this->expectException(PreconditionFailedHttpException::class);
     $prophecy = $this->prophesize(ImmutableConfig::class);
     $prophecy->get(Argument::any())->willReturn(NULL);
     $immutConfig = $prophecy->reveal();

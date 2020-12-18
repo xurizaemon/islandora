@@ -34,8 +34,8 @@ class GenerateAudioDerivative extends AbstractGenerateDerivative {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    $form['mimetype']['#description'] = t('Mimetype to convert to (e.g. audio/mpeg, audio/m4a, etc...)');
-    $form['args']['#description'] = t('Additional command line parameters for FFMpeg');
+    $form['mimetype']['#description'] = $this->t('Mimetype to convert to (e.g. audio/mpeg, audio/m4a, etc...)');
+    $form['args']['#description'] = $this->t('Additional command line parameters for FFMpeg');
     return $form;
   }
 
@@ -48,7 +48,7 @@ class GenerateAudioDerivative extends AbstractGenerateDerivative {
     if ($exploded_mime[0] != 'audio') {
       $form_state->setErrorByName(
         'mimetype',
-        t('Please enter a audio mimetype (e.g. audio/mpeg, audio/m4a, etc...)')
+        $this->t('Please enter a audio mimetype (e.g. audio/mpeg, audio/m4a, etc...)')
       );
     }
   }

@@ -65,7 +65,7 @@ class IndexingTest extends IslandoraFunctionalTestBase {
     $this->addPresetReaction('test', 'delete', 'goodbye_world');
 
     // Delete the node.
-    $this->drupalPostForm("$url/delete", [], t('Delete'));
+    $this->drupalPostForm("$url/delete", [], $this->t('Delete'));
     $this->assertSession()->statusCodeEquals(200);
 
     // Confirm Goodbye, Cruel World! is printed to the screen.

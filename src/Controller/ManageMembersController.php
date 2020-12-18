@@ -130,7 +130,7 @@ class ManageMembersController extends EntityController {
     }
 
     // Build the message shown when there are no bundles.
-    $type_label = $type_definition->getLowercaseLabel();
+    $type_label = $type_definition->getSingularLabel();
     $link_text = $this->t('Add a new @entity_type.', ['@entity_type' => $type_label]);
     $build['#add_bundle_message'] = $this->t('There is no @entity_type yet. @add_link', [
       '@entity_type' => $type_label,

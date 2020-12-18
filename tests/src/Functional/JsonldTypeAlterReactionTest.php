@@ -27,16 +27,16 @@ class JsonldTypeAlterReactionTest extends JsonldSelfReferenceReactionTest {
       'new_storage_type' => 'string',
       'label' => 'Typed Predicate',
       'field_name' => 'type_predicate',
-    ], t('Save and continue'));
-    $this->drupalPostForm(NULL, [], t('Save field settings'));
-    $this->drupalPostForm(NULL, [], t('Save settings'));
+    ], $this->t('Save and continue'));
+    $this->drupalPostForm(NULL, [], $this->t('Save field settings'));
+    $this->drupalPostForm(NULL, [], $this->t('Save settings'));
     $this->assertRaw('field_type_predicate', 'Redirected to "Manage fields" page.');
 
     // Add the test node.
     $this->postNodeAddForm('test_type', [
       'title[0][value]' => 'Test Node',
       'field_type_predicate[0][value]' => 'schema:Organization',
-    ], t('Save'));
+    ], $this->t('Save'));
     $this->assertSession()->pageTextContains("Test Node");
     $url = $this->getUrl();
 
@@ -73,7 +73,7 @@ class JsonldTypeAlterReactionTest extends JsonldSelfReferenceReactionTest {
     $this->addCondition('test', 'islandora_entity_bundle');
     $this->getSession()->getPage()->checkField("edit-conditions-islandora-entity-bundle-bundles-test-type");
     $this->getSession()->getPage()->findById("edit-conditions-islandora-entity-bundle-context-mapping-node")->selectOption("@node.node_route_context:node");
-    $this->getSession()->getPage()->pressButton(t('Save and continue'));
+    $this->getSession()->getPage()->pressButton($this->t('Save and continue'));
 
     // The first time a Context is saved, you need to clear the cache.
     // Subsequent changes to the context don't need a cache rebuild, though.

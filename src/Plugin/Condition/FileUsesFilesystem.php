@@ -6,6 +6,7 @@ use Drupal\Core\Condition\ConditionPluginBase;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperManager;
 use Drupal\file\FileInterface;
 use Drupal\islandora\IslandoraUtils;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -151,7 +152,7 @@ class FileUsesFilesystem extends ConditionPluginBase implements ContainerFactory
    */
   protected function evaluateFile(FileInterface $file) {
     $uri = $file->getFileUri();
-    $scheme = $this->fileSystem->uriScheme($uri);
+    $scheme = StreamWrapperManager::getScheme($uri);
     return !empty($this->configuration['filesystems'][$scheme]);
   }
 
