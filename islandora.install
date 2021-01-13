@@ -70,3 +70,23 @@ function islandora_update_8004() {
     }
   }
 }
+
+/**
+ * Makes migrate_tags an array.
+ */
+function islandora_update_8005() {
+  $config_factory = \Drupal::configFactory();
+  $config_factory->getEditable('migrate_plus.migration.islandora__tags')->delete();
+  $config = $config_factory->getEditable('migrate_plus.migration.islandora_tags');
+  if ($config) {
+    if (!is_array($config->get('migration_tags'))) {
+      $config->set('migration_tags', [$config->get('migration_tags')]);
+      $config->save(TRUE);
+    }
+    if (!$config->get('source.ids')) {
+      $config->set('source.ids', $config->get('source.keys'));
+      $config->clear('source.keys');
+      $config->save(TRUE);
+    }
+  }
+}
