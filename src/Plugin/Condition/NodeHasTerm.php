@@ -84,7 +84,10 @@ class NodeHasTerm extends ConditionPluginBase implements ContainerFactoryPluginI
    */
   public function defaultConfiguration() {
     return array_merge(
-      ['logic' => 'and'],
+      [
+        'logic' => 'and',
+        'uri' => NULL,
+      ],
       parent::defaultConfiguration()
     );
   }
