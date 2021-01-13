@@ -3,6 +3,7 @@
 namespace Drupal\islandora\Plugin\Action;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -56,6 +57,13 @@ class AbstractGenerateDerivativeBase extends EmitEvent {
   protected $config;
 
   /**
+   * The entity field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManager
+   */
+  protected $entityFieldManager;
+
+  /**
    * Constructs a EmitEvent action.
    *
    * @param array $configuration
@@ -84,6 +92,8 @@ class AbstractGenerateDerivativeBase extends EmitEvent {
    *   The messenger.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config
    *   The system file config.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
+   *   Field Manager service.
    */
   public function __construct(
         array $configuration,
@@ -98,13 +108,15 @@ class AbstractGenerateDerivativeBase extends EmitEvent {
         MediaSourceService $media_source,
         TokenInterface $token,
         MessengerInterface $messenger,
-        ConfigFactoryInterface $config
+        ConfigFactoryInterface $config,
+        EntityFieldManagerInterface $entity_field_manager
     ) {
     $this->utils = $utils;
     $this->mediaSource = $media_source;
     $this->token = $token;
     $this->messenger = $messenger;
     $this->config = $config->get('system.file');
+    $this->entityFieldManager = $entity_field_manager;
     parent::__construct(
           $configuration,
           $plugin_id,
@@ -135,7 +147,8 @@ class AbstractGenerateDerivativeBase extends EmitEvent {
           $container->get('islandora.media_source_service'),
           $container->get('token'),
           $container->get('messenger'),
-          $container->get('config.factory')
+          $container->get('config.factory'),
+          $container->get('entity_field.manager')
       );
   }
 
