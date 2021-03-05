@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Drupal\Core\Config\ImmutableConfig;
-use Drupal\Core\File\FileSystem;
+use Drupal\Core\File\FileSystemInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
@@ -85,7 +85,7 @@ class IIIFManifest extends StylePluginBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, FileSystem $file_system, Client $http_client, MessengerInterface $messenger) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, FileSystemInterface $file_system, Client $http_client, MessengerInterface $messenger) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->serializer = $serializer;
