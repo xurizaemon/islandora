@@ -23,7 +23,7 @@ jobs:
       matrix:
         php-versions: ["7.3", "7.4"]
         test-suite: ["kernel", "functional", "functional-javascript"]
-        drupal-version: ["8.9.11", "9.1.1"]
+        drupal-version: ["8.9.11", "9.1.5"]
 
     name: PHP ${{ matrix.php-versions }} drupal ${{ matrix.drupal-version }} test-suite ${{ matrix.test-suite }}
 
