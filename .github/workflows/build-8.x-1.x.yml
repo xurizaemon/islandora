@@ -94,7 +94,8 @@ jobs:
           git -C "$GITHUB_WORKSPACE/build_dir" checkout -b travis-testing
           cd $DRUPAL_DIR
           composer config repositories.local path "$GITHUB_WORKSPACE/build_dir"
-          composer require "islandora/islandora:dev-travis-testing as dev-8.x-1.x" --prefer-source --update-with-all-dependencies
+          composer config minimum-stability dev
+          composer require "islandora/islandora:dev-travis-testing as dev-8.x-1.x"
 
       - name: Install modules
         run: |

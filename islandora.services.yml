@@ -52,10 +52,5 @@ services:
   islandora.utils:
     class: Drupal\islandora\IslandoraUtils
     arguments: ['@entity_type.manager', '@entity_field.manager', '@context.manager', '@flysystem_factory', '@language_manager']
-  islandora.gemini.client:
-    class: Islandora\Crayfish\Commons\Client\GeminiClient
-    factory: ['Drupal\islandora\GeminiClientFactory', create]
-    arguments: ['@config.factory', '@logger.channel.islandora']
-  islandora.gemini.lookup:
-    class: Drupal\islandora\GeminiLookup
-    arguments: ['@islandora.gemini.client', '@jwt.authentication.jwt', '@islandora.media_source_service', '@http_client', '@logger.channel.islandora']
+  islandora.entity_mapper:
+    class: Islandora\Crayfish\Commons\EntityMapper\EntityMapper

@@ -7,9 +7,6 @@ use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Site\Settings;
-use Drupal\Core\Url;
-use GuzzleHttp\Exception\ConnectException;
-use Islandora\Crayfish\Commons\Client\GeminiClient;
 use Stomp\Client;
 use Stomp\Exception\StompException;
 use Stomp\StatefulStomp;
@@ -25,7 +22,6 @@ class IslandoraSettingsForm extends ConfigFormBase {
   const BROKER_USER = 'broker_user';
   const BROKER_PASSWORD = 'broker_password';
   const JWT_EXPIRY = 'jwt_expiry';
-  const GEMINI_URL = 'gemini_url';
   const GEMINI_PSEUDO = 'gemini_pseudo_bundles';
   const FEDORA_URL = 'fedora_url';
   const TIME_INTERVALS = [
@@ -148,12 +144,6 @@ class IslandoraSettingsForm extends ConfigFormBase {
       ),
     ];
 
-    $form[self::GEMINI_URL] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Gemini URL'),
-      '#default_value' => $config->get(self::GEMINI_URL),
-    ];
-
     $flysystem_config = Settings::get('flysystem');
     if ($flysystem_config != NULL) {
       $fedora_url = $flysystem_config['fedora']['config']['root'];
@@ -269,45 +259,6 @@ class IslandoraSettingsForm extends ConfigFormBase {
         );
       }
     }
-
-    // Needed for the elseif below.
-    $pseudo_types = array_filter($form_state->getValue(self::GEMINI_PSEUDO));
-
-    // Validate Gemini URL by validating the URL.
-    $geminiUrlValue = trim($form_state->getValue(self::GEMINI_URL));
-    if (!empty($geminiUrlValue)) {
-      try {
-        $geminiUrl = Url::fromUri($geminiUrlValue);
-        $client = GeminiClient::create($geminiUrlValue, $this->logger('islandora'));
-        $client->findByUri('http://example.org');
-      }
-      // Uri is invalid.
-      catch (\InvalidArgumentException $e) {
-        $form_state->setErrorByName(
-          self::GEMINI_URL,
-          $this->t(
-            'Cannot parse URL @url',
-            ['@url' => $geminiUrlValue]
-          )
-        );
-      }
-      // Uri is not available.
-      catch (ConnectException $e) {
-        $form_state->setErrorByName(
-              self::GEMINI_URL,
-              $this->t(
-                  'Cannot connect to URL @url',
-                  ['@url' => $geminiUrlValue]
-              )
-          );
-      }
-    }
-    elseif (count($pseudo_types) > 0) {
-      $form_state->setErrorByName(
-        self::GEMINI_URL,
-        $this->t('Must enter Gemini URL before selecting bundles to display a pseudo field on.')
-      );
-    }
   }
 
   /**
@@ -337,7 +288,6 @@ class IslandoraSettingsForm extends ConfigFormBase {
     $config
       ->set(self::BROKER_URL, $form_state->getValue(self::BROKER_URL))
       ->set(self::JWT_EXPIRY, $form_state->getValue(self::JWT_EXPIRY))
-      ->set(self::GEMINI_URL, $form_state->getValue(self::GEMINI_URL))
       ->set(self::GEMINI_PSEUDO, $pseudo_types)
       ->save();
 
