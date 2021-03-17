@@ -16,33 +16,31 @@ function islandora_core_feature_update_8001() {
   $field_name = 'field_file_size';
 
   $database = \Drupal::database();
-  $data = [];
-  $storage_key = $entity_type . '.field_schema_data.' . $field_name;
-  $storage_schema = \Drupal::keyValue('entity.storage_schema.sql');
-  $field_schema = $storage_schema->get($storage_key);
-
-  foreach ([
+  $tables = [
     "{$entity_type}__{$field_name}",
     "{$entity_type}_revision__{$field_name}",
-  ] as $table) {
+  ];
+
+  foreach ($tables as $table) {
+
     // Squirrel away the data.
-    $data[$table] = $database->select($table, 'n')
-      ->fields('n')
-      ->execute()
-      ->fetchAll();
+    $table_file_path = "public://islandora_core_feature_update_8001_{$table}.json";
+    if (!file_exists($table_file_path)) {
+      $table_data = $database->select($table, 'n')->fields('n')->execute()->fetchAll();
+      \Drupal::service('file_system')->saveData(json_encode($table_data), $table_file_path);
+    }
 
     // Clean it out for resizing.
     $database->truncate($table)->execute();
-    $database->schema()->dropPrimaryKey($table);
 
-    // Resize the main field data table.
-    $database->query("ALTER TABLE $table MODIFY {$field_name}_value BIGINT(11) unsigned NOT NULL");
+    $database->schema()->changeField($table, $field_name . '_value', $field_name . '_value', [
+      'type' => 'int',
+      'size' => 'big',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+    ]);
 
-    // Update storage schema.
-    $field_schema[$table]['fields'][$field_name . '_value']['type'] = "bigint";
-    $field_schema[$table]['fields'][$field_name . '_value']['unsigned'] = "true";
   }
-  $storage_schema->set($storage_key, $field_schema);
 
   // Update field storage configuration.
   $config = \Drupal::configFactory()
@@ -55,12 +53,18 @@ function islandora_core_feature_update_8001() {
   FieldStorageConfig::loadByName($entity_type, $field_name)->save();
 
   // Reload the data.
-  foreach ($data as $table => $rows) {
-    foreach ($rows as $row) {
-      $database->insert($table)
-        ->fields((array) $row)
-        ->execute();
+  foreach ($tables as $table) {
+    $table_file_path = "public://islandora_core_feature_update_8001_{$table}.json";
+    if (file_exists($table_file_path)) {
+      foreach (json_decode(file_get_contents($table_file_path), TRUE) as $row) {
+        $database->insert($table)
+          ->fields((array) $row)
+          ->execute();
+      }
+      // Clean up.
+      \Drupal::service('file_system')->delete($table_file_path);
     }
+
   }
 
   return t('Length of @entity-type.@field-name updated to an unsigned big int', [
