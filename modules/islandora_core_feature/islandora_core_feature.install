@@ -21,7 +21,10 @@ function islandora_core_feature_update_8001() {
   $storage_schema = \Drupal::keyValue('entity.storage_schema.sql');
   $field_schema = $storage_schema->get($storage_key);
 
-  foreach (["{$entity_type}__{$field_name}", "{$entity_type}_revision__{$field_name}"] as $table) {
+  foreach ([
+    "{$entity_type}__{$field_name}",
+    "{$entity_type}_revision__{$field_name}",
+  ] as $table) {
     // Squirrel away the data.
     $data[$table] = $database->select($table, 'n')
       ->fields('n')
