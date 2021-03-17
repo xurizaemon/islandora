@@ -1,0 +1,67 @@
+<?php
+
+/**
+ * @file
+ * Update Hooks.
+ */
+
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Updates Media file size field storage for larger files.
+ */
+function islandora_core_feature_update_8001() {
+
+  $entity_type = 'media';
+  $field_name = 'field_file_size';
+
+  $database = \Drupal::database();
+  $data = [];
+  $storage_key = $entity_type . '.field_schema_data.' . $field_name;
+  $storage_schema = \Drupal::keyValue('entity.storage_schema.sql');
+  $field_schema = $storage_schema->get($storage_key);
+
+  foreach (["{$entity_type}__{$field_name}", "{$entity_type}_revision__{$field_name}"] as $table) {
+    // Squirrel away the data.
+    $data[$table] = $database->select($table, 'n')
+      ->fields('n')
+      ->execute()
+      ->fetchAll();
+
+    // Clean it out for resizing.
+    $database->truncate($table)->execute();
+    $database->schema()->dropPrimaryKey($table);
+
+    // Resize the main field data table.
+    $database->query("ALTER TABLE $table MODIFY {$field_name}_value BIGINT(11) unsigned NOT NULL");
+
+    // Update storage schema.
+    $field_schema[$table]['fields'][$field_name . '_value']['type'] = "bigint";
+    $field_schema[$table]['fields'][$field_name . '_value']['unsigned'] = "true";
+  }
+  $storage_schema->set($storage_key, $field_schema);
+
+  // Update field storage configuration.
+  $config = \Drupal::configFactory()
+    ->getEditable("field.storage.{$entity_type}.{$field_name}");
+  $config->set('settings.size', 'big');
+  $config->set('settings.unsigned', TRUE);
+  $config->save(TRUE);
+
+  // Make sure the new config persists.
+  FieldStorageConfig::loadByName($entity_type, $field_name)->save();
+
+  // Reload the data.
+  foreach ($data as $table => $rows) {
+    foreach ($rows as $row) {
+      $database->insert($table)
+        ->fields((array) $row)
+        ->execute();
+    }
+  }
+
+  return t('Length of @entity-type.@field-name updated to an unsigned big int', [
+    '@entity-type' => $entity_type,
+    '@field-name' => $field_name,
+  ]);
+}
