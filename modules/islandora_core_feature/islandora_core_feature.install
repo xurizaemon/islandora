@@ -23,23 +23,59 @@ function islandora_core_feature_update_8001() {
 
   foreach ($tables as $table) {
 
-    // Squirrel away the data.
-    $table_file_path = "public://islandora_core_feature_update_8001_{$table}.json";
-    if (!file_exists($table_file_path)) {
-      $table_data = $database->select($table, 'n')->fields('n')->execute()->fetchAll();
-      \Drupal::service('file_system')->saveData(json_encode($table_data), $table_file_path);
-    }
+    // Move the existing data out of the way.
+    $database->schema()->renameTable($table, $table . '_o');
 
-    // Clean it out for resizing.
-    $database->truncate($table)->execute();
+    // Create replacement tables.
+    $database->schema()->createTable($table, [
+      'fields' => [
+        'bundle' => [
+          'type' => 'varchar',
+          'not null' => TRUE,
+          'length' => 128,
+          'default' => ' ',
+        ],
+        'deleted' => [
+          'type' => 'int',
+          'size' => 'tiny',
+          'not null' => TRUE,
+          'default' => 0,
+        ],
+        'entity_id' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'length' => 10,
 
-    $database->schema()->changeField($table, $field_name . '_value', $field_name . '_value', [
-      'type' => 'int',
-      'size' => 'big',
-      'unsigned' => TRUE,
-      'not null' => TRUE,
+        ],
+        'revision_id' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'length' => 10,
+        ],
+        'langcode' => [
+          'type' => 'varchar',
+          'not null' => TRUE,
+          'length' => 32,
+          'default' => ' ',
+        ],
+        'delta' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'length' => 10,
+        ],
+        'field_file_size_value' => [
+          'type' => 'int',
+          'size' => 'big',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ],
+      ],
+      'primary key' => ['entity_id', 'deleted', 'delta', 'langcode'],
+      'indexes' => ['bundle' => ['bundle'], 'revision_id' => ['revision_id']],
     ]);
-
   }
 
   // Update field storage configuration.
@@ -52,19 +88,11 @@ function islandora_core_feature_update_8001() {
   // Make sure the new config persists.
   FieldStorageConfig::loadByName($entity_type, $field_name)->save();
 
-  // Reload the data.
+  // Reload the data and clean up.
   foreach ($tables as $table) {
-    $table_file_path = "public://islandora_core_feature_update_8001_{$table}.json";
-    if (file_exists($table_file_path)) {
-      foreach (json_decode(file_get_contents($table_file_path), TRUE) as $row) {
-        $database->insert($table)
-          ->fields((array) $row)
-          ->execute();
-      }
-      // Clean up.
-      \Drupal::service('file_system')->delete($table_file_path);
-    }
-
+    $query = $database->select($table . '_o', 'o')->fields('o');
+    $database->insert($table)->from($query)->execute();
+    $database->schema()->dropTable($table . '_o');
   }
 
   return t('Length of @entity-type.@field-name updated to an unsigned big int', [
