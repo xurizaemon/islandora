@@ -107,7 +107,7 @@ function islandora_core_feature_update_8001(&$sandbox) {
   // Arbitrary, hopefully reasonable, batch size per table.
   $limit = 500;
 
-  // Reload the data and clean up.
+  // Reload the data.
   foreach ($tables as $table) {
     if (!isset($sandbox[$table]['done'])) {
       $query = $database->select($table . '_o', 'o')->fields('o')
@@ -116,16 +116,19 @@ function islandora_core_feature_update_8001(&$sandbox) {
         ->orderBy('o.delta', 'ASC')
         ->range($sandbox['progress'], $sandbox['progress'] + $limit);
       $database->insert($table)->from($query)->execute();
-      $database->schema()->dropTable($table . '_o');
-      if ($sandbox['progress'] + $limit >= $progress[$table]['size']) {
-        $sandbox[$table]['done'] = TRUE;
-      }
     }
   }
 
   $sandbox['progress'] = $sandbox['progress'] + $limit;
   $sandbox['#finished'] = $sandbox['progress'] >= $sandbox['upper_limit'] ? 1 : $sandbox['progress'] / $sandbox['upper_limit'];
   if ($sandbox['#finished'] == 1) {
+    // Clean up.
+    foreach ($tables as $table) {
+      $database->schema()->dropTable($table . '_o');
+      if ($sandbox['progress'] + $limit >= $progress[$table]['size']) {
+        $sandbox[$table]['done'] = TRUE;
+      }
+    }
     return t('Length of @entity-type.@field-name updated to an unsigned big int', [
       '@entity-type' => $entity_type,
       '@field-name' => $field_name,
