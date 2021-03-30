@@ -1,0 +1,137 @@
+<?php
+
+/**
+ * @file
+ * Update Hooks.
+ */
+
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Updates Media file size field storage for larger files.
+ */
+function islandora_core_feature_update_8001(&$sandbox) {
+
+  $entity_type = 'media';
+
+  $field_name = 'field_file_size';
+
+  $database = \Drupal::database();
+  $tables = [
+    "{$entity_type}__{$field_name}",
+    "{$entity_type}_revision__{$field_name}",
+  ];
+
+  if (!isset($sandbox['progress'])) {
+    $sandbox['upper_limit'] = 0;
+    foreach ($tables as $table) {
+
+      // Record size of the table for future use.
+      $sandbox[$table]['size'] = $database->select($table)
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+      if ($sandbox[$table]['size'] > $sandbox['upper_limit']) {
+        $sandbox['upper_limit'] = $sandbox[$table]['size'];
+      }
+      // Move the existing data out of the way.
+      $database->schema()->renameTable($table, $table . '_o');
+
+      // Create replacement tables.
+      $database->schema()->createTable($table, [
+        'fields' => [
+          'bundle' => [
+            'type' => 'varchar',
+            'not null' => TRUE,
+            'length' => 128,
+            'default' => ' ',
+          ],
+          'deleted' => [
+            'type' => 'int',
+            'size' => 'tiny',
+            'not null' => TRUE,
+            'default' => 0,
+          ],
+          'entity_id' => [
+            'type' => 'int',
+            'unsigned' => TRUE,
+            'not null' => TRUE,
+            'length' => 10,
+
+          ],
+          'revision_id' => [
+            'type' => 'int',
+            'unsigned' => TRUE,
+            'not null' => TRUE,
+            'length' => 10,
+          ],
+          'langcode' => [
+            'type' => 'varchar',
+            'not null' => TRUE,
+            'length' => 32,
+            'default' => ' ',
+          ],
+          'delta' => [
+            'type' => 'int',
+            'unsigned' => TRUE,
+            'not null' => TRUE,
+            'length' => 10,
+          ],
+          'field_file_size_value' => [
+            'type' => 'int',
+            'size' => 'big',
+            'unsigned' => TRUE,
+            'not null' => TRUE,
+          ],
+        ],
+        'primary key' => ['entity_id', 'deleted', 'delta', 'langcode'],
+        'indexes' => ['bundle' => ['bundle'], 'revision_id' => ['revision_id']],
+      ]);
+
+    }
+
+    // Update field storage configuration.
+    $config = \Drupal::configFactory()
+      ->getEditable("field.storage.{$entity_type}.{$field_name}");
+    $config->set('settings.size', 'big');
+    $config->set('settings.unsigned', TRUE);
+    $config->save(TRUE);
+
+    // Make sure the new config persists.
+    FieldStorageConfig::loadByName($entity_type, $field_name)->save();
+
+    // Track batch reload progress.
+    $sandbox['progress'] = 0;
+  }
+
+  // Arbitrary, hopefully reasonable, batch size per table.
+  $limit = 500;
+
+  // Reload the data.
+  foreach ($tables as $table) {
+    if (!isset($sandbox[$table]['done'])) {
+      $query = $database->select($table . '_o', 'o')->fields('o')
+        ->orderBy('o.entity_id', 'ASC')
+        ->orderBy('o.revision_id', 'ASC')
+        ->orderBy('o.delta', 'ASC')
+        ->range($sandbox['progress'], $sandbox['progress'] + $limit);
+      $database->insert($table)->from($query)->execute();
+    }
+  }
+
+  $sandbox['progress'] = $sandbox['progress'] + $limit;
+  $sandbox['#finished'] = $sandbox['progress'] >= $sandbox['upper_limit'] ? 1 : $sandbox['progress'] / $sandbox['upper_limit'];
+  if ($sandbox['#finished'] == 1) {
+    // Clean up.
+    foreach ($tables as $table) {
+      $database->schema()->dropTable($table . '_o');
+      if ($sandbox['progress'] + $limit >= $progress[$table]['size']) {
+        $sandbox[$table]['done'] = TRUE;
+      }
+    }
+    return t('Length of @entity-type.@field-name updated to an unsigned big int', [
+      '@entity-type' => $entity_type,
+      '@field-name' => $field_name,
+    ]);
+  }
+}
