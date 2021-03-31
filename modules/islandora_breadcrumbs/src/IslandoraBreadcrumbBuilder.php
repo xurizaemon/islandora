@@ -41,7 +41,7 @@ class IslandoraBreadcrumbBuilder implements BreadcrumbBuilderInterface {
    */
   public function __construct(EntityTypeManagerInterface $entity_manager, ConfigFactoryInterface $config_factory) {
     $this->nodeStorage = $entity_manager->getStorage('node');
-    $this->config = $config_factory->get('islandora.breadcrumbs');
+    $this->config = $config_factory->get('islandora_breadcrumbs.breadcrumbs');
   }
 
   /**

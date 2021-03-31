@@ -1,4 +1,4 @@
-islandora.breadcrumbs:
+islandora_breadcrumbs.breadcrumbs:
   type: config_object
   mapping:
     maxDepth:
