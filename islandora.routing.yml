@@ -36,6 +36,17 @@ islandora.add_member_to_node_page:
   requirements:
     _entity_create_any_access: 'node'
 
+islandora.upload_children:
+  path: '/node/{node}/members/upload'
+  defaults:
+    _form: '\Drupal\islandora\Form\AddChildrenForm'
+    _title: 'Upload Children'
+  options:
+    _admin_route: 'TRUE'
+  requirements:
+    _access: 'TRUE'
+    #_permssion: 'create node,create media'
+
 islandora.add_media_to_node_page:
   path: '/node/{node}/media/add'
   defaults:
@@ -46,6 +57,16 @@ islandora.add_media_to_node_page:
     _admin_route: 'true'
   requirements:
     _entity_create_any_access: 'media'
+
+islandora.upload_media:
+  path: '/node/{node}/media/upload'
+  defaults:
+    _form: '\Drupal\islandora\Form\AddMediaForm'
+    _title: 'Add media'
+  options:
+    _admin_route: 'TRUE'
+  requirements:
+    _custom_access: '\Drupal\islandora\Form\AddMediaForm::access'
 
 islandora.media_source_update:
   path: '/media/{media}/source'

@@ -1,12 +1,24 @@
-islandora.add_media_to_node:
-  route_name: islandora.add_media_to_node_page
-  title: Add media
+islandora.upload_media:
+  route_name: islandora.upload_media
+  title: Batch Upload Media
   appears_on:
     - view.media_of.page_1
 
+islandora.add_media_to_node:
+  route_name: islandora.add_media_to_node_page
+  title: Add Media
+  appears_on:
+    - view.media_of.page_1
+
+islandora.upload_children:
+  route_name: islandora.upload_children
+  title: Batch Upload Children
+  appears_on:
+    - view.manage_members.page_1
+
 islandora.add_member_to_node:
   route_name: islandora.add_member_to_node_page
-  title: Add child
+  title: Add Child
   appears_on:
     - view.manage_members.page_1
 

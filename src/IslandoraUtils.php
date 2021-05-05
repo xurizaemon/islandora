@@ -32,6 +32,8 @@ class IslandoraUtils {
   const MEDIA_OF_FIELD = 'field_media_of';
 
   const MEDIA_USAGE_FIELD = 'field_media_use';
+  const MEMBER_OF_FIELD = 'field_member_of';
+  const MODEL_FIELD = 'field_model';
 
   /**
    * The entity type manager.
@@ -610,6 +612,64 @@ class IslandoraUtils {
       $rest_url .= "?_format=$format";
     }
     return $rest_url;
+  }
+
+  /**
+   * Determines if an entity type and bundle make an 'Islandora' type entity.
+   *
+   * @param string $entity_type
+   *   The entity type ('node', 'media', etc...).
+   * @param string $bundle
+   *   Entity bundle ('article', 'page', etc...).
+   *
+   * @return bool
+   *   TRUE if the bundle has the correct fields to be an 'Islandora' type.
+   */
+  public function isIslandoraType($entity_type, $bundle) {
+    $fields = $this->entityFieldManager->getFieldDefinitions($entity_type, $bundle);
+    switch ($entity_type) {
+      case 'media':
+        return isset($fields[self::MEDIA_OF_FIELD]) && isset($fields[self::MEDIA_USAGE_FIELD]);
+
+      case 'taxonomy_term':
+        return isset($fields[self::EXTERNAL_URI_FIELD]);
+
+      default:
+        return isset($fields[self::MEMBER_OF_FIELD]);
+    }
+  }
+
+  /**
+   * Util function for access handlers .
+   *
+   * @param string $entity_type
+   *   Entity type such as 'node', 'media', 'taxonomy_term', etc..
+   * @param string $bundle_type
+   *   Bundle type such as 'node_type', 'media_type', 'vocabulary', etc...
+   *
+   * @return bool
+   *   If user can create _at least one_ of the 'Islandora' types requested.
+   */
+  public function canCreateIslandoraEntity($entity_type, $bundle_type) {
+    $bundles = $this->entityTypeManager->getStorage($bundle_type)->loadMultiple();
+    $access_control_handler = $this->entityTypeManager->getAccessControlHandler($entity_type);
+
+    $allowed = [];
+    foreach (array_keys($bundles) as $bundle) {
+      // Skip bundles that aren't 'Islandora' types.
+      if (!$this->isIslandoraType($entity_type, $bundle)) {
+        continue;
+      }
+
+      $access = $access_control_handler->createAccess($bundle, NULL, [], TRUE);
+      if (!$access->isAllowed()) {
+        continue;
+      }
+
+      return TRUE;
+    }
+
+    return FALSE;
   }
 
 }

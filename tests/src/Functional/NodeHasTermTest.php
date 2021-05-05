@@ -35,7 +35,7 @@ class NodeHasTermTest extends IslandoraFunctionalTestBase {
       ->create([
         'type' => 'test_type',
         'title' => 'Test Node',
-        'field_tags' => [$this->imageTerm->id()],
+        'field_model' => [$this->imageTerm->id()],
       ]);
 
     // Create and execute the condition.
@@ -66,22 +66,11 @@ class NodeHasTermTest extends IslandoraFunctionalTestBase {
       ->create([
         'type' => 'test_type',
         'title' => 'Test Node',
-        'field_tags' => [$this->preservationMasterTerm->id()],
+        'field_model' => [$this->preservationMasterTerm->id()],
       ]);
 
     $condition->setContextValue('node', $node);
     $this->assertFalse($condition->execute(), "Condition should fail if the node has terms, but not the one we want.");
-
-    // Check for two tags this time.
-    // Node still only has one.
-    $condition = $condition_manager->createInstance(
-      'node_has_term',
-      [
-        'uri' => 'http://purl.org/coar/resource_type/c_c513,http://pcdm.org/use#PreservationMasterFile',
-      ]
-    );
-    $condition->setContextValue('node', $node);
-    $this->assertFalse($condition->execute(), "Condition should fail if node does not have both terms");
 
     // Check for two tags this time.
     // Node still only has one.
@@ -101,7 +90,7 @@ class NodeHasTermTest extends IslandoraFunctionalTestBase {
       ->create([
         'type' => 'test_type',
         'title' => 'Test Node',
-        'field_tags' => [
+        'field_model' => [
           $this->imageTerm->id(),
           $this->preservationMasterTerm->id(),
         ],
