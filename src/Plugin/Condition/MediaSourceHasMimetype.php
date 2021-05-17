@@ -55,7 +55,7 @@ class MediaSourceHasMimetype extends ConditionPluginBase {
         $source = $entity->getSource();
         if ($source) {
           $source_file = File::load($source->getSourceFieldValue($entity));
-          if ($this->configuration['mimetype'] == $source_file->getMimeType()) {
+          if (!empty($source_file) && $this->configuration['mimetype'] == $source_file->getMimeType()) {
             return TRUE;
           }
         }
