@@ -118,4 +118,3 @@ We recommend using the [islandora-playbook](https://github.com/Islandora-Devops/
 
 [GPLv2](http://www.gnu.org/licenses/gpl-2.0.txt)
 
-DOES AUTO-UPDATING WORK NOW?
