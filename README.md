@@ -117,3 +117,5 @@ We recommend using the [islandora-playbook](https://github.com/Islandora-Devops/
 ## License
 
 [GPLv2](http://www.gnu.org/licenses/gpl-2.0.txt)
+
+ADDING THIS IN TO SEE IF PACKAGIST AUTO UPDATES
