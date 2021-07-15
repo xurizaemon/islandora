@@ -135,3 +135,19 @@ function islandora_core_feature_update_8001(&$sandbox) {
     ]);
   }
 }
+
+/**
+ * Delete actions that have to do with Gemini.
+ */
+function islandora_core_feature_update_8002() {
+  $config_factory = \Drupal::configFactory();
+  $action = $config_factory->getEditable('system.action.index_file_in_fedora');
+  if ($action) {
+    $action->delete();
+  }
+
+  $action = $config_factory->getEditable('system.action.delete_file_from_fedora');
+  if ($action) {
+    $action->delete();
+  }
+}
