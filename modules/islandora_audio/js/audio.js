@@ -21,10 +21,12 @@
     function init(context,settings){
         if (!initialized){
             initialized = true;
-	    $('audio')[0].textTracks[0].oncuechange = function() {
-		var currentCue = this.activeCues[0].text;
-		$('#audioTrack').html(currentCue);
-	    }
+            if ($('audio')[0].textTracks.length > 0) {
+                $('audio')[0].textTracks[0].oncuechange = function() {
+                    var currentCue = this.activeCues[0].text;
+                    $('#audioTrack').html(currentCue);
+                }
+            }
         }
     }
     Drupal.Audio = Drupal.Audio || {};
