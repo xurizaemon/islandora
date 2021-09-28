@@ -114,7 +114,7 @@ function islandora_core_feature_update_8001(&$sandbox) {
         ->orderBy('o.entity_id', 'ASC')
         ->orderBy('o.revision_id', 'ASC')
         ->orderBy('o.delta', 'ASC')
-        ->range($sandbox['progress'], $sandbox['progress'] + $limit);
+        ->range($sandbox['progress'], $limit);
       $database->insert($table)->from($query)->execute();
     }
   }
@@ -125,7 +125,7 @@ function islandora_core_feature_update_8001(&$sandbox) {
     // Clean up.
     foreach ($tables as $table) {
       $database->schema()->dropTable($table . '_o');
-      if ($sandbox['progress'] + $limit >= $progress[$table]['size']) {
+      if ($sandbox['progress'] + $limit >= $sandbox[$table]['size']) {
         $sandbox[$table]['done'] = TRUE;
       }
     }
