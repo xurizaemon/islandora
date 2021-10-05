@@ -6,14 +6,14 @@
 
 ## Introduction
 
-Provides an action to extract text with a [Hypercube](https://github.com/Islandora/Crayfish/tree/dev/Hypercube) (`tessseract` and `pdftotext`) server, as well as a Media type to hold the extracted text.
+Provides an action to extract text with a [Hypercube](https://github.com/Islandora/Crayfish/tree/2.x/Hypercube) (`tesseract` and `pdftotext`) server, as well as a Media type to hold the extracted text.
 
 ## Requirements
 
 - `islandora` and `islandora_core_feature`
 - A Hypercube microservice
 - A message broker (e.g. Activemq) for Islandora 8
-- An instance of `islandora-connector-derivative` (from [Alpaca](https://github.com/Islandora/Alpaca/tree/dev/islandora-connector-derivative)) configured for Hypercube
+- An instance of `islandora-connector-derivative` (from [Alpaca](https://github.com/Islandora/Alpaca/tree/1.x/islandora-connector-derivative)) configured for Hypercube
 
 ## Installation
 

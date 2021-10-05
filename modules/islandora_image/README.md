@@ -6,14 +6,14 @@
 
 ## Introduction
 
-Provides an action to convert images with a [Houdini](https://github.com/Islandora/Crayfish/tree/dev/Houdini) (`imagemagick`) server.
+Provides an action to convert images with a [Houdini](https://github.com/Islandora/Crayfish/tree/2.x/Houdini) (`imagemagick`) server.
 
 ## Requirements
 
 - `islandora` and `islandora_core_feature`
 - A Houdini microservice
 - A message broker (e.g. Activemq) for Islandora 8
-- `islandora-connector-derivative` (from [Alpaca](https://github.com/Islandora/Alpaca/tree/dev/islandora-connector-derivative)) configured for Houdini 
+- `islandora-connector-derivative` (from [Alpaca](https://github.com/Islandora/Alpaca/tree/1.x/islandora-connector-derivative)) configured for Houdini 
 
 ## Installation
 
