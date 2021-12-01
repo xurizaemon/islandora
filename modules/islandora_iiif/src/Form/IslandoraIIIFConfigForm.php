@@ -8,6 +8,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\UrlHelper;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ConnectException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -116,6 +117,9 @@ class IslandoraIIIFConfigForm extends ConfigFormBase {
       return ($result->getStatusCode() == 200);
     }
     catch (ClientException $e) {
+      return FALSE;
+    }
+    catch (ConnectException $e) {
       return FALSE;
     }
 
