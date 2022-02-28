@@ -251,7 +251,8 @@ function islandora_jsonld_alter_normalized_array(EntityInterface $entity, array 
     $reaction->execute($entity, $normalized, $context);
     foreach ($context_manager->getActiveContexts() as $context_config) {
       try {
-        if ($context_config->getReaction($reaction->getPluginId()) && isset($context['cacheability'])) {
+        if ($context_config->getReaction($reaction->getPluginId()) && isset($context['cacheability'])
+        && method_exists($context['cacheability'], 'addCacheTags')) {
           $context['cacheability']->addCacheTags($context_config->getCacheTags());
         };
       }
