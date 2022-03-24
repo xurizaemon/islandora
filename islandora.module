@@ -253,8 +253,7 @@ function islandora_jsonld_alter_normalized_array(EntityInterface $entity, array 
     foreach ($context_manager->getActiveContexts() as $context_config) {
       try {
         if ($context_config->getReaction($reaction->getPluginId()) && isset($context[CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY])) {
-          $context[CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY]->addCacheableDependency($context_config);
-        };
+          $context[CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY]->addCacheableDependency($context_config); 
         };
       }
       catch (PluginNotFoundException $e) {
