@@ -26,6 +26,7 @@ use Drupal\media\MediaInterface;
 use Drupal\file\FileInterface;
 use Drupal\taxonomy\TermInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\serialization\Normalizer\CacheableNormalizerInterface;
 
 /**
  * Implements hook_help().
