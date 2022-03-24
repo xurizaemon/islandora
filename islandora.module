@@ -251,9 +251,9 @@ function islandora_jsonld_alter_normalized_array(EntityInterface $entity, array 
     $reaction->execute($entity, $normalized, $context);
     foreach ($context_manager->getActiveContexts() as $context_config) {
       try {
-        if ($context_config->getReaction($reaction->getPluginId()) && isset($context['cacheability'])
-        && method_exists($context['cacheability'], 'addCacheTags')) {
-          $context['cacheability']->addCacheTags($context_config->getCacheTags());
+        if ($context_config->getReaction($reaction->getPluginId()) && isset($context[CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY])) {
+          $context[CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY]->addCacheableDependency($context_config);
+        };
         };
       }
       catch (PluginNotFoundException $e) {
