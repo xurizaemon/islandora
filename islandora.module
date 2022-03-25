@@ -26,6 +26,7 @@ use Drupal\media\MediaInterface;
 use Drupal\file\FileInterface;
 use Drupal\taxonomy\TermInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\serialization\Normalizer\CacheableNormalizerInterface;
 
 /**
  * Implements hook_help().
@@ -251,8 +252,8 @@ function islandora_jsonld_alter_normalized_array(EntityInterface $entity, array 
     $reaction->execute($entity, $normalized, $context);
     foreach ($context_manager->getActiveContexts() as $context_config) {
       try {
-        if ($context_config->getReaction($reaction->getPluginId())) {
-          $context['cacheability']->addCacheTags($context_config->getCacheTags());
+        if ($context_config->getReaction($reaction->getPluginId()) && isset($context[CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY])) {
+          $context[CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY]->addCacheableDependency($context_config);
         };
       }
       catch (PluginNotFoundException $e) {
