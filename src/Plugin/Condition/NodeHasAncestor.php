@@ -96,7 +96,7 @@ class NodeHasAncestor extends ConditionPluginBase implements ContainerFactoryPlu
       '#type' => 'entity_autocomplete',
       '#title' => $this->t('Parent node(s)'),
       '#default_value' => $default_nids,
-      '#required' => TRUE,
+      '#required' => FALSE,
       '#description' => $this->t("Can be a collection node, compound object or paged content. Accepts multiple values separated by a comma."),
       '#target_type' => 'node',
       '#tags' => TRUE,
@@ -130,9 +130,11 @@ class NodeHasAncestor extends ConditionPluginBase implements ContainerFactoryPlu
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     // Entity autocomplete store things with target IDs, for convenience just
     // store the plain nid.
-    $this->configuration['ancestor_nids'] = array_map(function ($nid) {
-      return $nid['target_id'];
-    }, $form_state->getValue('ancestor_nids'));
+    if (!empty($form_state->getValue('ancestor_nids'))) {
+      $this->configuration['ancestor_nids'] = array_map(function ($nid) {
+        return $nid['target_id'];
+      }, $form_state->getValue('ancestor_nids'));
+    }
     $this->configuration['parent_reference_field'] = $form_state->getValue('parent_reference_field');
     parent::submitConfigurationForm($form, $form_state);
   }
