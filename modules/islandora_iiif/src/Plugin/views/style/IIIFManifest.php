@@ -121,18 +121,22 @@ class IIIFManifest extends StylePluginBase {
     $iiif_address = $this->iiifConfig->get('iiif_server');
     if (!is_null($iiif_address) && !empty($iiif_address)) {
       // Get the current URL being requested.
-      $request_url = $this->request->getSchemeAndHttpHost() . $this->request->getRequestUri();
+      $request_host = $this->request->getSchemeAndHttpHost();
+      $request_url = $this->request->getRequestUri();
       // Strip off the last URI component to get the base ID of the URL.
       // @todo assumming the view is a path like /node/1/manifest.json
       $url_components = explode('/', $request_url);
       array_pop($url_components);
-      $iiif_base_id = implode('/', $url_components);
+      $content_path = implode('/', $url_components);
+      $iiif_base_id = $request_host . '/' . $content_path;
+
+
       // @see https://iiif.io/api/presentation/2.1/#manifest
       $json += [
         '@type' => 'sc:Manifest',
         '@id' => $request_url,
         // If the View has a title, set the View title as the manifest label.
-        'label' => $this->view->getTitle() ?: 'IIIF Manifest',
+        'label' => $this->view->getTitle() ?: $this->getEntityTitle($content_path),
         '@context' => 'http://iiif.io/api/presentation/2/context.json',
         // @see https://iiif.io/api/presentation/2.1/#sequence
         'sequences' => [
@@ -258,6 +262,25 @@ class IIIFManifest extends StylePluginBase {
     }
 
     return $canvases;
+  }
+
+  /**
+   * Pull a title from the node or media passed to this view.
+   *
+   * @param string $content_path
+   * @return string
+   */
+  public function getEntityTitle(string $content_path): string {
+    $entity_title = $this->t('IIIF Manifest');
+    $params = \Drupal\Core\Url::fromUserInput($content_path)->getRouteParameters();
+    if (isset($params['node'])) {
+      $node = \Drupal\node\Entity\Node::load($params['node']);
+      $entity_title = $node->getTitle();
+    } elseif (isset($params['media'])) {
+      $media = \Drupal\media\Entity\Media::load($params['media']);
+      $entity_title = $media->getName();
+    }
+    return $entity_title;
   }
 
   /**
