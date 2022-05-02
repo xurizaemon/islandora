@@ -130,7 +130,6 @@ class IIIFManifest extends StylePluginBase {
       $content_path = implode('/', $url_components);
       $iiif_base_id = $request_host . '/' . $content_path;
 
-
       // @see https://iiif.io/api/presentation/2.1/#manifest
       $json += [
         '@type' => 'sc:Manifest',
@@ -272,13 +271,17 @@ class IIIFManifest extends StylePluginBase {
    */
   public function getEntityTitle(string $content_path): string {
     $entity_title = $this->t('IIIF Manifest');
-    $params = \Drupal\Core\Url::fromUserInput($content_path)->getRouteParameters();
-    if (isset($params['node'])) {
-      $node = \Drupal\node\Entity\Node::load($params['node']);
-      $entity_title = $node->getTitle();
-    } elseif (isset($params['media'])) {
-      $media = \Drupal\media\Entity\Media::load($params['media']);
-      $entity_title = $media->getName();
+    try {
+      $params = \Drupal\Core\Url::fromUserInput($content_path)->getRouteParameters();
+      if (isset($params['node'])) {
+        $node = \Drupal\node\Entity\Node::load($params['node']);
+        $entity_title = $node->getTitle();
+      } elseif (isset($params['media'])) {
+        $media = \Drupal\media\Entity\Media::load($params['media']);
+        $entity_title = $media->getName();
+      }
+    } catch (\InvalidArgumentException $e) {
+
     }
     return $entity_title;
   }
