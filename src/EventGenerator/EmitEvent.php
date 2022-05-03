@@ -5,6 +5,7 @@ namespace Drupal\islandora\EventGenerator;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Action\ConfigurableActionBase;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -68,6 +69,13 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
   protected $messenger;
 
   /**
+   * The logger.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected $logger;
+
+  /**
    * Constructs a EmitEvent action.
    *
    * @param array $configuration
@@ -88,6 +96,8 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
    *   The messenger.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   Event dispatcher service.
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $channel
+   *   Logger channel.
    */
   public function __construct(
     array $configuration,
@@ -98,7 +108,8 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
     EventGeneratorInterface $event_generator,
     StatefulStomp $stomp,
     MessengerInterface $messenger,
-    EventDispatcherInterface $event_dispatcher
+    EventDispatcherInterface $event_dispatcher,
+    LoggerChannelInterface $channel
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->account = $account;
@@ -107,6 +118,7 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
     $this->stomp = $stomp;
     $this->messenger = $messenger;
     $this->eventDispatcher = $event_dispatcher;
+    $this->logger = $channel;
   }
 
   /**
@@ -122,7 +134,8 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
       $container->get('islandora.eventgenerator'),
       $container->get('islandora.stomp'),
       $container->get('messenger'),
-      $container->get('event_dispatcher')
+      $container->get('event_dispatcher'),
+      $container->get('logger.channel.islandora')
     );
   }
 
@@ -132,6 +145,16 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
   public function execute($entity = NULL) {
     // Generate event as stomp message.
     try {
+      if (is_null($this->stomp->getClient()->getProtocol())) {
+        // getProtocol() can return NULL but that causes a larger problem.
+        // So attempt to disconnect + connect to re-establish the connection or
+        // throw a StompException.
+        // @see https://github.com/stomp-php/stomp-php/issues/167
+        // @see https://github.com/stomp-php/stomp-php/blob/3a9347a11743d0b79fd60564f356bc3efe40e615/src/Client.php#L429-L434
+        $this->stomp->getClient()->disconnect();
+        $this->stomp->getClient()->connect();
+      }
+
       $user = $this->entityTypeManager->getStorage('user')->load($this->account->id());
       $data = $this->generateData($entity);
 
@@ -146,18 +169,22 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
       );
     }
     catch (StompHeaderEventException $e) {
-      \Drupal::logger('islandora')->error($e->getMessage());
-      $this->messenger->addMessage($e->getMessage(), 'error');
+      $this->logger->error($e->getMessage());
+      $this->messenger->addError($e->getMessage());
+      return;
+    }
+    catch (StompException $e) {
+      $this->logger->error("Unable to connect to JMS Broker: @msg", ["@msg" => $e->getMessage()]);
+      $this->messenger->addWarning("Unable to connect to JMS Broker, items might not be synchronized to external services.");
       return;
     }
     catch (\RuntimeException $e) {
       // Notify the user the event couldn't be generated and abort.
-      \Drupal::logger('islandora')->error(
+      $this->logger->error(
         $this->t('Error generating event: @msg', ['@msg' => $e->getMessage()])
       );
-      $this->messenger->addMessage(
-        $this->t('Error generating event: @msg', ['@msg' => $e->getMessage()]),
-        'error'
+      $this->messenger->addError(
+        $this->t('Error generating event: @msg', ['@msg' => $e->getMessage()])
       );
       return;
     }
@@ -170,17 +197,16 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
     }
     catch (StompException $e) {
       // Log it.
-      \Drupal::logger('islandora')->error(
+      $this->logger->error(
         'Error publishing message: @msg',
         ['@msg' => $e->getMessage()]
       );
 
       // Notify user.
-      $this->messenger->addMessage(
+      $this->messenger->addError(
         $this->t('Error publishing message: @msg',
           ['@msg' => $e->getMessage()]
-        ),
-        'error'
+        )
       );
     }
   }
