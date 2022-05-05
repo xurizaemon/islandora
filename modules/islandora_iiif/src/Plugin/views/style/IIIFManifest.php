@@ -5,6 +5,7 @@ namespace Drupal\islandora_iiif\Plugin\views\style;
 use Drupal\views\Plugin\views\style\StylePluginBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Url;
 use Drupal\views\ResultRow;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -267,20 +268,25 @@ class IIIFManifest extends StylePluginBase {
    * Pull a title from the node or media passed to this view.
    *
    * @param string $content_path
+   *   The path of the content being requested.
+   *
    * @return string
+   *   The entity's title.
    */
   public function getEntityTitle(string $content_path): string {
     $entity_title = $this->t('IIIF Manifest');
     try {
-      $params = \Drupal\Core\Url::fromUserInput($content_path)->getRouteParameters();
+      $params = Url::fromUserInput($content_path)->getRouteParameters();
       if (isset($params['node'])) {
-        $node = \Drupal\node\Entity\Node::load($params['node']);
+        $node = \Drupal::entityTypeManager()->getStorage('node')->load($params['node']);
         $entity_title = $node->getTitle();
-      } elseif (isset($params['media'])) {
-        $media = \Drupal\media\Entity\Media::load($params['media']);
+      }
+      elseif (isset($params['media'])) {
+        $media = \Drupal::entityTypeManager()->getStorage('media')->load($params['media']);
         $entity_title = $media->getName();
       }
-    } catch (\InvalidArgumentException $e) {
+    }
+    catch (\InvalidArgumentException $e) {
 
     }
     return $entity_title;
