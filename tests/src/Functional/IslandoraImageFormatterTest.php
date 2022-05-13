@@ -11,11 +11,6 @@ namespace Drupal\Tests\islandora\Functional;
 class IslandoraImageFormatterTest extends IslandoraFunctionalTestBase {
 
   /**
-   * @var bool Suppresses "Schema incomplete" error.
-   */
-  protected $strictConfigSchema = FALSE;
-
-  /**
    * @covers \Drupal\islandora\Plugin\Field\FieldFormatter\IslandoraImageFormatter::viewElements
    */
   public function testIslandoraImageFormatter() {
@@ -31,16 +26,21 @@ class IslandoraImageFormatterTest extends IslandoraFunctionalTestBase {
     // Create an image media type.
     $testImageMediaType = $this->createMediaType('image', ['id' => 'test_image_media_type']);
     $testImageMediaType->save();
-    $this->createEntityReferenceField('media', $testImageMediaType->id(), 'field_media_of', 'Media Of', 'node', 'default', [], 2);("Got past create media type.");
+    $this->createEntityReferenceField('media', $testImageMediaType->id(), 'field_media_of', 'Media Of', 'node', 'default', [], 2);
     // Set the display mode to use the islandora_image formatter.
     // Also, only show the image on display to remove clutter.
     $display_options = [
       'type' => 'islandora_image',
-      'settings' => [/*'image_style' => NULL,*/ 'image_link' => 'content'],
+      'settings' => [
+        'image_style' => '',
+        'image_link' => 'content',
+        'image_loading' => [
+          'attribute' => 'eager',
+        ],
+      ],
     ];
 
     $display = $this->container->get('entity_display.repository')->getViewDisplay('media', $testImageMediaType->id(), 'default');
-
     $display->setComponent('field_media_image', $display_options)
       ->removeComponent('created')
       ->removeComponent('uid')
