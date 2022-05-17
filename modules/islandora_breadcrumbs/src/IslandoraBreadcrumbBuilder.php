@@ -64,7 +64,14 @@ class IslandoraBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     $nid = $attributes->getRawParameters()->get('node');
     if (!empty($nid)) {
       $node = $this->nodeStorage->load($nid);
-      return (!empty($node) && $node->hasField($this->config->get('referenceField')));
+      if (empty($node)) {
+        return FALSE;
+      }
+      foreach ($this->config->get('referenceFields') as $field) {
+        if ($node->hasField($field)) {
+          return TRUE;
+        }
+      }
     }
   }
 
@@ -86,7 +93,7 @@ class IslandoraBreadcrumbBuilder implements BreadcrumbBuilderInterface {
       return $link !== $nid;
     });
     if ($this->config->get('includeSelf')) {
-      array_push($chain, $node);
+      array_push($chain, $nid);
     }
     $breadcrumb->addCacheableDependency($node);
 

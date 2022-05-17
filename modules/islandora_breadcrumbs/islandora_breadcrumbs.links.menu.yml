@@ -1,0 +1,5 @@
+system.islandora_breadcrumbs_settings:
+  title: 'Breadcrumbs Settings'
+  parent: system.admin_config_islandora
+  route_name: system.islandora_breadcrumbs_settings
+  description: 'Configure Islandora breadcrumb settings'
