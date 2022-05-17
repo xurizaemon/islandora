@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Install/update hook implementations.
+ */
+
+/**
+ * Update referenceField config to referenceFields.
+ */
+function islandora_breadcrumbs_update_8001() {
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('islandora_breadcrumbs.breadcrumbs');
+  $config->set('referenceFields', [$config->get('referenceField')]);
+  $config->clear('referenceField');
+  $config->save();
+  return "Updated referenceFields config.";
+}

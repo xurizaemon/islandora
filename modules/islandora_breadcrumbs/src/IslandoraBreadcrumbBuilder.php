@@ -78,7 +78,7 @@ class IslandoraBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     $breadcrumb = new Breadcrumb();
     $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
 
-    $chain = array_reverse($this->utils->findAncestors($node, [$this->config->get('referenceField')], $this->config->get('maxDepth')));
+    $chain = array_reverse($this->utils->findAncestors($node, $this->config->get('referenceFields'), $this->config->get('maxDepth')));
 
     // XXX: Handle a looping breadcrumb scenario by filtering the present
     // node out and then optionally re-adding it after if set to do so.
