@@ -64,7 +64,14 @@ class IslandoraBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     $nid = $attributes->getRawParameters()->get('node');
     if (!empty($nid)) {
       $node = $this->nodeStorage->load($nid);
-      return (!empty($node) && $node->hasField($this->config->get('referenceField')));
+      if (empty($node)) {
+        return FALSE;
+      }
+      foreach ($this->config->get('referenceFields') as $field) {
+        if ($node->hasField($field)) {
+          return TRUE;
+        }
+      }
     }
   }
 
@@ -76,9 +83,10 @@ class IslandoraBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     $nid = $route_match->getRawParameters()->get('node');
     $node = $this->nodeStorage->load($nid);
     $breadcrumb = new Breadcrumb();
+    $breadcrumb->addCacheableDependency($this->config);
     $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
 
-    $chain = array_reverse($this->utils->findAncestors($node, [$this->config->get('referenceField')], $this->config->get('maxDepth')));
+    $chain = array_reverse($this->utils->findAncestors($node, $this->config->get('referenceFields'), $this->config->get('maxDepth')));
 
     // XXX: Handle a looping breadcrumb scenario by filtering the present
     // node out and then optionally re-adding it after if set to do so.
@@ -86,7 +94,7 @@ class IslandoraBreadcrumbBuilder implements BreadcrumbBuilderInterface {
       return $link !== $nid;
     });
     if ($this->config->get('includeSelf')) {
-      array_push($chain, $node);
+      array_push($chain, $nid);
     }
     $breadcrumb->addCacheableDependency($node);
 
