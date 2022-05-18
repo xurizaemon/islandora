@@ -45,8 +45,8 @@ class IslandoraBreadcrumbsSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('maxDepth'),
       '#min' => -1,
       '#step' => 1,
-      '#title' => $this->t('Maximum number of breadcrumbs'),
-      '#description' => $this->t("Stop adding parent references to the breadrumbs at this number of items. The default value, '-1' disables this feature."),
+      '#title' => $this->t('Maximum number of ancestor breadcrumbs'),
+      '#description' => $this->t("Stops adding ancestor references when the chain reaches this number. The count does not include the current node when enabled. The default value, '-1' disables this feature."),
     ];
 
     $form['includeSelf'] = [

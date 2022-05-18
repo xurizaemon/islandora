@@ -83,6 +83,7 @@ class IslandoraBreadcrumbBuilder implements BreadcrumbBuilderInterface {
     $nid = $route_match->getRawParameters()->get('node');
     $node = $this->nodeStorage->load($nid);
     $breadcrumb = new Breadcrumb();
+    $breadcrumb->addCacheableDependency($this->config);
     $breadcrumb->addLink(Link::createFromRoute($this->t('Home'), '<front>'));
 
     $chain = array_reverse($this->utils->findAncestors($node, $this->config->get('referenceFields'), $this->config->get('maxDepth')));
