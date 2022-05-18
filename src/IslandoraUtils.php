@@ -714,7 +714,7 @@ class IslandoraUtils {
    * @param int $current_height
    *   The current height of the recursion.
    */
-  protected function findAncestorsByEntityReference(ContentEntityInterface $entity, array &$context, array $fields = [self::MEMBER_OF_FIELD], int $current_height = 0): void {
+  protected function findAncestorsByEntityReference(ContentEntityInterface $entity, array &$context, array $fields = [self::MEMBER_OF_FIELD], int $current_height = 1): void {
     $parents = $this->getParentsByEntityReference($entity, $fields);
     foreach ($parents as $parent) {
       if (isset($context['ancestors'][$parent->id()])) {
