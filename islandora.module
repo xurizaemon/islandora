@@ -422,7 +422,7 @@ function islandora_entity_extra_field_info() {
 
   if (!empty($pseudo_bundles)) {
     foreach ($pseudo_bundles as $key) {
-      list($bundle, $content_entity) = explode(":", $key);
+      [$bundle, $content_entity] = explode(":", $key);
       $extra_field[$content_entity][$bundle]['display']['field_gemini_uri'] = [
         'label' => t('Fedora URI'),
         'description' => t('The URI to the persistent'),
@@ -451,6 +451,17 @@ function islandora_entity_view(array &$build, EntityInterface $entity, EntityVie
         // Check if the source file is in Fedora or not.
         $media_source_service = \Drupal::service('islandora.media_source_service');
         $source_file = $media_source_service->getSourceFile($entity);
+        if (!$source_file) {
+          \Drupal::logger('islandora')->error(
+            \Drupal::service('string_translation')->translate(
+              "Can't get source file for @label (@id)", [
+                '@label' => $entity->label(),
+                "@id" => $entity->id(),
+              ]
+            )
+          );
+          return;
+        }
         $uri = $source_file->getFileUri();
         $scheme = \Drupal::service('stream_wrapper_manager')->getScheme($uri);
         $flysystem_config = Settings::get('flysystem');
