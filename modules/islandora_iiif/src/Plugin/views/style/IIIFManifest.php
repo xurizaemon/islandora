@@ -3,6 +3,7 @@
 namespace Drupal\islandora_iiif\Plugin\views\style;
 
 use Drupal\views\Plugin\views\style\StylePluginBase;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
@@ -70,6 +71,13 @@ class IIIFManifest extends StylePluginBase {
   protected $iiifConfig;
 
   /**
+   * The Drupal Entity Type Manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * The Drupal Filesystem.
    *
    * @var \Drupal\Core\File\FileSystem
@@ -86,12 +94,13 @@ class IIIFManifest extends StylePluginBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, FileSystemInterface $file_system, Client $http_client, MessengerInterface $messenger) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, EntityTypeManagerInterface $entity_type_manager, FileSystemInterface $file_system, Client $http_client, MessengerInterface $messenger) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->serializer = $serializer;
     $this->request = $request;
     $this->iiifConfig = $iiif_config;
+    $this->entityTypeManager = $entity_type_manager;
     $this->fileSystem = $file_system;
     $this->httpClient = $http_client;
     $this->messenger = $messenger;
@@ -108,6 +117,7 @@ class IIIFManifest extends StylePluginBase {
       $container->get('serializer'),
       $container->get('request_stack')->getCurrentRequest(),
       $container->get('config.factory')->get('islandora_iiif.settings'),
+      $container->get('entity_type.manager'),
       $container->get('file_system'),
       $container->get('http_client'),
       $container->get('messenger')
@@ -278,11 +288,11 @@ class IIIFManifest extends StylePluginBase {
     try {
       $params = Url::fromUserInput($content_path)->getRouteParameters();
       if (isset($params['node'])) {
-        $node = \Drupal::entityTypeManager()->getStorage('node')->load($params['node']);
+        $node = $this->entityTypeManager->getStorage('node')->load($params['node']);
         $entity_title = $node->getTitle();
       }
       elseif (isset($params['media'])) {
-        $media = \Drupal::entityTypeManager()->getStorage('media')->load($params['media']);
+        $media = $this->entityTypeManager->getStorage('media')->load($params['media']);
         $entity_title = $media->getName();
       }
     }
