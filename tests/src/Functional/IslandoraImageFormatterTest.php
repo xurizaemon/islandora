@@ -27,13 +27,19 @@ class IslandoraImageFormatterTest extends IslandoraFunctionalTestBase {
     $testImageMediaType = $this->createMediaType('image', ['id' => 'test_image_media_type']);
     $testImageMediaType->save();
     $this->createEntityReferenceField('media', $testImageMediaType->id(), 'field_media_of', 'Media Of', 'node', 'default', [], 2);
-
     // Set the display mode to use the islandora_image formatter.
     // Also, only show the image on display to remove clutter.
     $display_options = [
       'type' => 'islandora_image',
-      'settings' => ['image_style' => NULL, 'image_link' => 'content'],
+      'settings' => [
+        'image_style' => '',
+        'image_link' => 'content',
+        'image_loading' => [
+          'attribute' => 'eager',
+        ],
+      ],
     ];
+
     $display = $this->container->get('entity_display.repository')->getViewDisplay('media', $testImageMediaType->id(), 'default');
     $display->setComponent('field_media_image', $display_options)
       ->removeComponent('created')
@@ -47,7 +53,6 @@ class IslandoraImageFormatterTest extends IslandoraFunctionalTestBase {
       'title' => 'Test Node',
     ]);
     $node->save();
-
     // Make a image for the Media.
     $file = $this->container->get('entity_type.manager')->getStorage('file')->create([
       'uid' => $account->id(),
