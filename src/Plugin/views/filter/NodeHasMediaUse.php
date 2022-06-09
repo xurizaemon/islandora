@@ -71,7 +71,8 @@ class NodeHasMediaUse extends FilterPluginBase {
   public function adminSummary() {
     $operator = ($this->options['negated']) ? "does not have" : "has";
     $term = \Drupal::service('islandora.utils')->getTermForUri($this->options['use_uri']);
-    return "Node {$operator} a '{$term->label()}' media";
+    $label = (empty($term)) ? 'BROKEN TERM URI' : $term->label();
+    return "Node {$operator} a '{$label}' media";
   }
 
   /**
