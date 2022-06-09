@@ -158,14 +158,6 @@ condition.plugin.node_had_namespace:
     pid_field:
       type: ignore
       label: 'PID field'
-
 field.formatter.settings.islandora_image:
-  type: mapping
-  label: 'Image field display format settings'
-  mapping:
-    image_link:
-      type: string
-      label: 'Link image to'
-    image_style:
-      type: string
-      label: 'Image style'
+  type: field.formatter.settings.image
+  label: 'Islandora image field display format settings'

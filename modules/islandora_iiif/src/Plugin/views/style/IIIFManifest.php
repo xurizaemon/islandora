@@ -3,8 +3,10 @@
 namespace Drupal\islandora_iiif\Plugin\views\style;
 
 use Drupal\views\Plugin\views\style\StylePluginBase;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Url;
 use Drupal\views\ResultRow;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -69,6 +71,13 @@ class IIIFManifest extends StylePluginBase {
   protected $iiifConfig;
 
   /**
+   * The Drupal Entity Type Manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * The Drupal Filesystem.
    *
    * @var \Drupal\Core\File\FileSystem
@@ -85,12 +94,13 @@ class IIIFManifest extends StylePluginBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, FileSystemInterface $file_system, Client $http_client, MessengerInterface $messenger) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, EntityTypeManagerInterface $entity_type_manager, FileSystemInterface $file_system, Client $http_client, MessengerInterface $messenger) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->serializer = $serializer;
     $this->request = $request;
     $this->iiifConfig = $iiif_config;
+    $this->entityTypeManager = $entity_type_manager;
     $this->fileSystem = $file_system;
     $this->httpClient = $http_client;
     $this->messenger = $messenger;
@@ -107,6 +117,7 @@ class IIIFManifest extends StylePluginBase {
       $container->get('serializer'),
       $container->get('request_stack')->getCurrentRequest(),
       $container->get('config.factory')->get('islandora_iiif.settings'),
+      $container->get('entity_type.manager'),
       $container->get('file_system'),
       $container->get('http_client'),
       $container->get('messenger')
@@ -121,18 +132,21 @@ class IIIFManifest extends StylePluginBase {
     $iiif_address = $this->iiifConfig->get('iiif_server');
     if (!is_null($iiif_address) && !empty($iiif_address)) {
       // Get the current URL being requested.
-      $request_url = $this->request->getSchemeAndHttpHost() . $this->request->getRequestUri();
+      $request_host = $this->request->getSchemeAndHttpHost();
+      $request_url = $this->request->getRequestUri();
       // Strip off the last URI component to get the base ID of the URL.
       // @todo assumming the view is a path like /node/1/manifest.json
       $url_components = explode('/', $request_url);
       array_pop($url_components);
-      $iiif_base_id = implode('/', $url_components);
+      $content_path = implode('/', $url_components);
+      $iiif_base_id = $request_host . '/' . $content_path;
+
       // @see https://iiif.io/api/presentation/2.1/#manifest
       $json += [
         '@type' => 'sc:Manifest',
         '@id' => $request_url,
         // If the View has a title, set the View title as the manifest label.
-        'label' => $this->view->getTitle() ?: 'IIIF Manifest',
+        'label' => $this->view->getTitle() ?: $this->getEntityTitle($content_path),
         '@context' => 'http://iiif.io/api/presentation/2/context.json',
         // @see https://iiif.io/api/presentation/2.1/#sequence
         'sequences' => [
@@ -258,6 +272,34 @@ class IIIFManifest extends StylePluginBase {
     }
 
     return $canvases;
+  }
+
+  /**
+   * Pull a title from the node or media passed to this view.
+   *
+   * @param string $content_path
+   *   The path of the content being requested.
+   *
+   * @return string
+   *   The entity's title.
+   */
+  public function getEntityTitle(string $content_path): string {
+    $entity_title = $this->t('IIIF Manifest');
+    try {
+      $params = Url::fromUserInput($content_path)->getRouteParameters();
+      if (isset($params['node'])) {
+        $node = $this->entityTypeManager->getStorage('node')->load($params['node']);
+        $entity_title = $node->getTitle();
+      }
+      elseif (isset($params['media'])) {
+        $media = $this->entityTypeManager->getStorage('media')->load($params['media']);
+        $entity_title = $media->getName();
+      }
+    }
+    catch (\InvalidArgumentException $e) {
+
+    }
+    return $entity_title;
   }
 
   /**
