@@ -43,9 +43,17 @@ class NodeHasMediaUse extends FilterPluginBase {
    * {@inheritdoc}
    */
   protected function valueForm(&$form, FormStateInterface $form_state) {
+    $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['vid' => 'islandora_media_use']);
+    $uris = [];
+    foreach ($terms as $term) {
+      $uri = reset($term->get('field_external_uri')->getValue());
+      $uris[$uri['uri']] = $term->label();
+    }
+
     $form['use_uri'] = [
-      '#type' => 'textfield',
-      '#title' => "Media Use URI",
+      '#type' => 'select',
+      '#title' => "Media Use Term",
+      '#options' => $uris,
       '#default_value' => $this->options['use_uri'],
       '#required' => TRUE,
     ];
