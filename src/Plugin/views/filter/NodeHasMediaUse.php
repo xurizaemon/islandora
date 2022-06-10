@@ -18,20 +18,16 @@ class NodeHasMediaUse extends FilterPluginBase {
    * {@inheritdoc}
    */
   protected function defineOptions() {
-    $options = parent::defineOptions();
-
-    $options['use_uri'] = ['default' => NULL];
-    $options['negated'] = ['default' => FALSE];
-
-    return $options;
+    return [
+      'use_uri' => ['default' => NULL],
+      'negated' => ['default' => FALSE],
+    ];
   }
 
   /**
    * {@inheritdoc}
    */
   public function validateOptionsForm(&$form, FormStateInterface $form_state) {
-    parent::validateOptionsForm($form, $form_state);
-
     $uri = $form_state->getValues()['options']['use_uri'];
     $term = \Drupal::service('islandora.utils')->getTermForUri($uri);
     if (empty($term)) {
@@ -42,12 +38,13 @@ class NodeHasMediaUse extends FilterPluginBase {
   /**
    * {@inheritdoc}
    */
-  protected function valueForm(&$form, FormStateInterface $form_state) {
+  public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties(['vid' => 'islandora_media_use']);
     $uris = [];
     foreach ($terms as $term) {
-      $uri = reset($term->get('field_external_uri')->getValue());
-      $uris[$uri['uri']] = $term->label();
+      foreach ($term->get('field_external_uri')->getValue() as $uri) {
+        $uris[$uri['uri']] = $term->label();
+      }
     }
 
     $form['use_uri'] = [
@@ -92,7 +89,6 @@ class NodeHasMediaUse extends FilterPluginBase {
     $sub_query->fields('of', ['field_media_of_target_id'])
       ->condition('use.field_media_use_target_id', $term->id());
     $this->query->addWhere(0, 'nid', $sub_query, $condition);
-
   }
 
 }
