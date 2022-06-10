@@ -25,4 +25,16 @@ function islandora_views_data_alter(&$data) {
       }
     }
   }
+
+  // Add Has Media filter.
+  $data['node_field_data']['islandora_has_media'] = [
+    'title' => t('Node has Media Use'),
+    'group' => t('Content'),
+    'filter' => [
+      'title' => t('Node has media use filter'),
+      'help' => t('Provides a custom filter for nodes that do or do not have media with a given use.'),
+      'field' => 'nid',
+      'id' => 'islandora_node_has_media_use',
+    ],
+  ];
 }
