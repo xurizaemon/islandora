@@ -189,21 +189,27 @@ class IIIFManifest extends StylePluginBase {
    */
   protected function getTileSourceFromRow(ResultRow $row, $iiif_address, $iiif_base_id) {
     $canvases = [];
-    foreach ($this->options['iiif_tile_field'] as $iiif_tile_field) {
+    foreach (array_filter(array_values($this->options['iiif_tile_field'])) as $iiif_tile_field) {
       $viewsField = $this->view->field[$iiif_tile_field];
+      $iiif_ocr_file_field = !empty($this->options['iiif_ocr_file_field']) ? array_filter(array_values($this->options['iiif_ocr_file_field'])) : [];
+      $ocrField = count($iiif_ocr_file_field) > 0 ? $this->view->field[$iiif_ocr_file_field[0]] : NULL;
       $entity = $viewsField->getEntity($row);
 
       if (isset($entity->{$viewsField->definition['field_name']})) {
 
         /** @var \Drupal\Core\Field\FieldItemListInterface $images */
         $images = $entity->{$viewsField->definition['field_name']};
-        foreach ($images as $image) {
+        foreach ($images as $i => $image) {
           if (!$image->entity->access('view')) {
             // If the user does not have permission to view the file, skip it.
             continue;
           }
+
+          $ocrs = $entity->{$ocrField->definition['field_name']};
+
           // Create the IIIF URL for this file
           // Visiting $iiif_url will resolve to the info.json for the image.
+          $ocr = isset($ocrs[$i]) ? $ocrs[$i] : FALSE;
           $file_url = $image->entity->createFileUrl(FALSE);
           $mime_type = $image->entity->getMimeType();
           $iiif_url = rtrim($iiif_address, '/') . '/' . urlencode($file_url);
@@ -241,8 +247,7 @@ class IIIFManifest extends StylePluginBase {
               }
             }
           }
-
-          $canvases[] = [
+          $tmp_canvas = [
             // @see https://iiif.io/api/presentation/2.1/#canvas
             '@id' => $canvas_id,
             '@type' => 'sc:Canvas',
@@ -271,6 +276,17 @@ class IIIFManifest extends StylePluginBase {
               ],
             ],
           ];
+
+          if (isset($ocr) && $ocr != FALSE) {
+            $tmp_canvas['seeAlso'] = [
+              '@id' => $ocr->entity->createFileUrl(FALSE),
+              'format' => 'text/vnd.hocr+html',
+              'profile' => 'http://kba.cloud/hocr-spec',
+              'label' => 'hOCR embedded text',
+            ];
+          }
+
+          $canvases[] = $tmp_canvas;
         }
       }
     }
@@ -313,6 +329,7 @@ class IIIFManifest extends StylePluginBase {
     $options = parent::defineOptions();
 
     $options['iiif_tile_field'] = ['default' => ''];
+    $options['iiif_ocr_file_field'] = ['default' => ''];
 
     return $options;
   }
@@ -367,6 +384,15 @@ class IIIFManifest extends StylePluginBase {
       // we have more than one option to choose from
       // otherwise could lock up the form when setting up a View.
       '#required' => count($field_options) > 0,
+    ];
+
+    $form['iiif_ocr_file_field'] = [
+      '#title' => $this->t('Structured OCR data file field'),
+      '#type' => 'checkboxes',
+      '#default_value' => $this->options['iiif_ocr_file_field'],
+      '#description' => $this->t('The source of structured OCR text for each entity.'),
+      '#options' => $field_options,
+      '#required' => FALSE,
     ];
   }
 
