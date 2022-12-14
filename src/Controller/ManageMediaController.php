@@ -6,6 +6,7 @@ use Drupal\islandora\IslandoraUtils;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Routing\RouteMatch;
 use Drupal\node\Entity\Node;
+use Drupal\Core\Url;
 use Drupal\node\NodeInterface;
 
 /**
@@ -25,7 +26,7 @@ class ManageMediaController extends ManageMembersController {
   public function addToNodePage(NodeInterface $node) {
     $field = IslandoraUtils::MEDIA_OF_FIELD;
 
-    return $this->generateTypeList(
+    $add_media_list = $this->generateTypeList(
       'media',
       'media_type',
       'entity.media.add_form',
@@ -33,6 +34,21 @@ class ManageMediaController extends ManageMembersController {
       $field,
       ['query' => ["edit[$field][widget][0][target_id]" => $node->id()]]
     );
+
+    $manage_link = Url::fromRoute('entity.media_type.collection')->toRenderArray();
+    $manage_link['#title'] = $this->t('Manage media types');
+    $manage_link['#type'] = 'link';
+    $manage_link['#prefix'] = ' ';
+    $manage_link['#suffix'] = '.';
+
+    return [
+      '#type' => 'markup',
+      '#markup' => $this->t("The following media types can be added because they have the <code>@field</code> field.", [
+        '@field' => $field,
+      ]),
+      'manage_link' => $manage_link,
+      'add_media' => $add_media_list,
+    ];
   }
 
   /**
