@@ -14,11 +14,11 @@
     }
   ],
   "require": {
-    "drupal/context": "^4.0@beta",
-    "drupal/search_api": "~1.8",
+    "drupal/context": "^4",
+    "drupal/search_api": "^1.8",
     "islandora/jsonld": "^2",
     "stomp-php/stomp-php": "4.* || ^5",
-    "drupal/jwt": "^1.0.0-beta5",
+    "drupal/jwt": "^1.0",
     "drupal/filehash": "^2",
     "drupal/prepopulate" : "^2.2",
     "drupal/eva" : "^3.0",
