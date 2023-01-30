@@ -43,22 +43,6 @@ function islandora_advanced_search_theme() {
 }
 
 /**
- * Implements hook_library_info_alter().
- */
-function islandora_advanced_search_library_info_alter(&$libraries, $extension) {
-  if ($extension == 'facets') {
-    // Override facets module javascript with customizations.
-    $path = '/' . drupal_get_path('module', 'islandora_advanced_search') . '/js/facets';
-    $libraries['soft-limit']['js'] = [
-      "$path/soft-limit.js" => [],
-    ];
-    $libraries['drupal.facets.views-ajax']['js'] = [
-      "$path/facets-views-ajax.js" => [],
-    ];
-  }
-}
-
-/**
  * Implements hook_search_api_solr_converted_query_alter().
  */
 function islandora_advanced_search_search_api_solr_converted_query_alter(SolariumQueryInterface $solarium_query, DrupalQueryInterface $search_api_query) {
