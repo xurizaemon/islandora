@@ -13,10 +13,8 @@
  */
 
 use Drupal\block\Entity\Block;
-use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\islandora_advanced_search\AdvancedSearchQuery;
-use Drupal\islandora_advanced_search\Form\SettingsForm;
 use Drupal\islandora_advanced_search\Utilities;
 use Drupal\search_api\Query\QueryInterface as DrupalQueryInterface;
 use Drupal\views\ViewExecutable;
