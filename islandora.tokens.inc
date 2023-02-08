@@ -79,7 +79,7 @@ function islandora_tokens($type, $tokens, array $data, array $options, Bubbleabl
           if ($media) {
             $file = \Drupal::service('islandora.media_source_service')->getSourceFile($media);
             if (!empty($file)) {
-              $url = $file->url();
+              $url = $file->createFileUrl();
               $replacements[$original] = $url;
             }
           }
