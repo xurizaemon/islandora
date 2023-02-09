@@ -160,8 +160,8 @@ abstract class EmitEvent extends ConfigurableActionBase implements ContainerFact
       $data = $this->generateData($entity);
 
       $event = $this->eventDispatcher->dispatch(
-        StompHeaderEvent::EVENT_NAME,
-        new StompHeaderEvent($entity, $user, $data, $this->getConfiguration())
+        new StompHeaderEvent($entity, $user, $data, $this->getConfiguration()),
+        StompHeaderEvent::EVENT_NAME
       );
 
       $message = new Message(
