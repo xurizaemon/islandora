@@ -62,7 +62,7 @@ class IslandoraContextManager extends ContextManager {
     // Apply context to any context aware conditions.
     // Abort if the application of contexts has been unsuccessful
     // similarly to BlockAccessControlHandler::checkAccess().
-    if (!$this->applyContexts($conditions, $provided)) {
+    if (count($conditions) > 0 && !$this->applyContexts($conditions, $provided)) {
       return FALSE;
     }
 
