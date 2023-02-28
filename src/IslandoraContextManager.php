@@ -62,7 +62,7 @@ class IslandoraContextManager extends ContextManager {
     // Apply context to any context aware conditions.
     // Abort if the application of contexts has been unsuccessful
     // similarly to BlockAccessControlHandler::checkAccess().
-    if (count($conditions) > 0 && !$this->applyContexts($conditions, $provided)) {
+    if (!$this->applyContexts($conditions, $provided)) {
       return FALSE;
     }
 
@@ -92,6 +92,12 @@ class IslandoraContextManager extends ContextManager {
    *   TRUE if conditions pass
    */
   protected function applyContexts(ConditionPluginCollection &$conditions, array $provided = []) {
+
+    // If no contexts to check, the return should be TRUE.
+    // For example, empty is the same as sitewide condition.
+    if (count($conditions) === 0) {
+      return TRUE;
+    }
     $passed = FALSE;
     foreach ($conditions as $condition) {
       if ($condition instanceof ContextAwarePluginInterface) {
