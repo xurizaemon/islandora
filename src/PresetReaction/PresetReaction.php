@@ -56,8 +56,8 @@ class PresetReaction extends ContextReactionPluginBase implements ContainerFacto
     $action_ids = $config['actions'];
     foreach ($action_ids as $action_id) {
       $action = $this->actionStorage->load($action_id);
-      // Make sure that the action is appropriate: either system or with same entity type.
-      if ($action->getType() === 'system' || $entity->getEntityTypeId() === $action->getType()) {
+      // Make sure that the action is appropriate for the entity.
+      if ($entity->getEntityTypeId() === $action->getType()) {
         $action->execute([$entity]);
       }
     }
