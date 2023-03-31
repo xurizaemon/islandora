@@ -91,12 +91,11 @@ Having problems or solved a problem? Check out the Islandora google groups for a
 
 Current maintainers:
 
-* [Islandora Technical Advisory Group]([https://github.com/dannylamb](https://github.com/Islandora/islandora-community/wiki/Technical-Advisory-Group-%28TAG%29))
+* [Islandora Technical Advisory Group](https://github.com/Islandora/islandora-community/wiki/Technical-Advisory-Group-%28TAG%29)
 
 ## Sponsors
 
-* American Philosophical Society
-
+* [American Philosophical Society](https://www.amphilsoc.org/)
 * [Born-Digital, Inc.](https://www.born-digital.com/)
 * [discoverygarden inc.](https://www.discoverygarden.ca/)
 * [LYRASIS](https://www.lyrasis.org/)
