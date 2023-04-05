@@ -91,21 +91,21 @@ Having problems or solved a problem? Check out the Islandora google groups for a
 
 Current maintainers:
 
-* [Danny Lamb](https://github.com/dannylamb)
+* [Islandora Technical Advisory Group](https://github.com/Islandora/islandora-community/wiki/Technical-Advisory-Group-%28TAG%29)
 
 ## Sponsors
 
-* UPEI
-* discoverygarden inc.
-* LYRASIS
-* McMaster University
-* University of Limerick
-* York University
-* University of Manitoba
-* Simon Fraser University
-* PALS
-* American Philosophical Society
-* Common Media Inc.
+* [American Philosophical Society](https://www.amphilsoc.org/)
+* [Born-Digital, Inc.](https://www.born-digital.com/)
+* [discoverygarden inc.](https://www.discoverygarden.ca/)
+* [LYRASIS](https://www.lyrasis.org/)
+* [McMaster University](https://www.mcmaster.ca/)
+* [PALS](https://www.mnpals.org/)
+* [University of Limerick](https://www.ul.ie/)
+* [University of Manitoba](https://umanitoba.ca/)
+* [UPEI](https://www.upei.ca/)
+* [Simon Fraser University](https://www.sfu.ca/)
+* [York University](https://www.yorku.ca/)
 
 ## Development
 
