@@ -4,7 +4,7 @@ namespace Drupal\islandora_iiif\Plugin\views\style;
 
 use Drupal\views\Plugin\views\style\StylePluginBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use \Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
@@ -91,9 +91,11 @@ class IIIFManifest extends StylePluginBase {
    * @var \Drupal\Core\Messenger\MessengerInterface
    */
   protected $messenger;
-  
+
   /**
-   * @var \Drupal\Core\Extention\ModuleHandlerInterface;
+   * Module Handler for running hooks.
+   * 
+   * @var \Drupal\Core\Extention\ModuleHandlerInterface
    */
   protected $moduleHandler;
 
@@ -134,7 +136,7 @@ class IIIFManifest extends StylePluginBase {
 
   /**
    * Return the request property.
-   * 
+   *
    * @return \Symfony\Component\HttpFoundation\Request
    *   The Symfony request object
    */
@@ -309,15 +311,18 @@ class IIIFManifest extends StylePluginBase {
             ];
           }
 
-          // Give other modules a chance to alter the canvas
-          $alter_options = ['options' => $this->options, 'views_plugin' => $this];
+          // Give other modules a chance to alter the canvas.
+          $alter_options = [
+            'options' => $this->options,
+            'views_plugin' => $this
+          ];
           $this->moduleHandler->alter('islandora_iiif_manifest_canvas', $tmp_canvas, $row, $alter_options);
 
           $canvases[] = $tmp_canvas;
         }
       }
     }
-    
+
     return $canvases;
   }
 
