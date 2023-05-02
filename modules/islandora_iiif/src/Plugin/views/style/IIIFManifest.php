@@ -136,7 +136,7 @@ class IIIFManifest extends StylePluginBase {
       $request_url = $this->request->getRequestUri();
       // Strip off the last URI component to get the base ID of the URL.
       // @todo assumming the view is a path like /node/1/manifest.json
-      $url_components = explode('/', $request_url);
+      $url_components = explode('/', trim($request_url, '/'));
       array_pop($url_components);
       $content_path = implode('/', $url_components);
       $iiif_base_id = $request_host . '/' . $content_path;
