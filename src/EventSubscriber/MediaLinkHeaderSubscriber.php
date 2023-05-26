@@ -2,10 +2,10 @@
 
 namespace Drupal\islandora\EventSubscriber;
 
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Drupal\Core\Url;
 use Drupal\media\MediaInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 
 /**
  * Subscribes to MediaLinkHeader Event.
@@ -17,7 +17,7 @@ class MediaLinkHeaderSubscriber extends LinkHeaderSubscriber implements EventSub
   /**
    * {@inheritdoc}
    */
-  public function onResponse(FilterResponseEvent $event) {
+  public function onResponse(ResponseEvent $event) {
     $response = $event->getResponse();
 
     $media = $this->getObject($response, 'media');

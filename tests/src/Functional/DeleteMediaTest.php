@@ -16,7 +16,7 @@ class DeleteMediaTest extends IslandoraFunctionalTestBase {
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'media_test_views',
     'context_ui',
     'field_ui',
@@ -47,7 +47,7 @@ class DeleteMediaTest extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Create a test user.

@@ -42,7 +42,7 @@ class LinkHeaderTest extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     $account = $this->createUserAndLogin();

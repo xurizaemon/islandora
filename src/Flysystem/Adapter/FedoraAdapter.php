@@ -2,6 +2,8 @@
 
 namespace Drupal\islandora\Flysystem\Adapter;
 
+use GuzzleHttp\Psr7\Header;
+use function GuzzleHttp\Psr7\parse_header;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Islandora\Chullo\IFedoraApi;
 use League\Flysystem\AdapterInterface;
@@ -159,11 +161,11 @@ class FedoraAdapter implements AdapterInterface {
     // directory.
     $type = 'dir';
     // phpcs:disable
-    if (class_exists(\GuzzleHttp\Psr7\Header::class)) {
-      $links = \GuzzleHttp\Psr7\Header::parse($response->getHeader('Link'));
+    if (class_exists(Header::class)) {
+      $links = Header::parse($response->getHeader('Link'));
     }
     else {
-      $links = \GuzzleHttp\Psr7\parse_header($response->getHeader('Link'));
+      $links = parse_header($response->getHeader('Link'));
     }
     // phpcs:enable
     foreach ($links as $link) {
@@ -402,11 +404,11 @@ class FedoraAdapter implements AdapterInterface {
     if ($response->getStatusCode() == 410) {
       $return = FALSE;
       // phpcs:disable
-      if (class_exists(\GuzzleHttp\Psr7\Header::class)) {
-        $link_headers = \GuzzleHttp\Psr7\Header::parse($response->getHeader('Link'));
+      if (class_exists(Header::class)) {
+        $link_headers = Header::parse($response->getHeader('Link'));
       }
       else {
-        $link_headers = \GuzzleHttp\Psr7\parse_header($response->getHeader('Link'));
+        $link_headers = parse_header($response->getHeader('Link'));
       }
       // phpcs:enable
       if ($link_headers) {

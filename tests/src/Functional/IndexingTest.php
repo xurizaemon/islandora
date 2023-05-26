@@ -12,7 +12,7 @@ class IndexingTest extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Create an action that dsm's "Goodbye, Cruel World!".
@@ -63,9 +63,10 @@ class IndexingTest extends IslandoraFunctionalTestBase {
 
     // Add the Goodbye World reaction.
     $this->addPresetReaction('test', 'delete', 'goodbye_world');
+    $this->drupalGet("$url/delete");
 
     // Delete the node.
-    $this->drupalPostForm("$url/delete", [], $this->t('Delete'));
+    $this->submitForm([], $this->t('Delete'));
     $this->assertSession()->statusCodeEquals(200);
 
     // Confirm Goodbye, Cruel World! is printed to the screen.

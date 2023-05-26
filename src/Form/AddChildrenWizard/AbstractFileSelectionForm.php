@@ -37,6 +37,11 @@ abstract class AbstractFileSelectionForm extends FormBase {
    * @var \Drupal\islandora\Form\AddChildrenWizard\AbstractBatchProcessor|null
    */
   protected ?AbstractBatchProcessor $batchProcessor;
+  private \static $static;
+  public function __construct(\static $static)
+  {
+      $this->static = $static;
+  }
 
   /**
    * {@inheritdoc}
@@ -49,7 +54,7 @@ abstract class AbstractFileSelectionForm extends FormBase {
     $instance->entityFieldManager = $container->get('entity_field.manager');
     $instance->currentUser = $container->get('current_user');
 
-    $instance->batchProcessor = $container->get(static::BATCH_PROCESSOR);
+    $instance->batchProcessor = $this->static;
 
     return $instance;
   }

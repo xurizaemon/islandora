@@ -29,7 +29,7 @@ abstract class GenerateDerivativeTestBase extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     $this->createUserAndLogin();

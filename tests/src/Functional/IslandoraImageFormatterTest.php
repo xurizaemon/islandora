@@ -92,7 +92,7 @@ class IslandoraImageFormatterTest extends IslandoraFunctionalTestBase {
         ':title' => 'Some Title',
       ]
     );
-    $this->assertEqual(count($elements), 1, 'Image linked to content formatter displaying points to Node and not Media.');
+    $this->assertEquals(count($elements), 1, 'Image linked to content formatter displaying points to Node and not Media.');
   }
 
 }

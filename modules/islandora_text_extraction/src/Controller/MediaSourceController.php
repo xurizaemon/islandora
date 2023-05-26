@@ -98,7 +98,7 @@ class MediaSourceController extends ControllerBase {
       if (!$this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
         throw new HttpException(500, "The destination directory does not exist, could not be created, or is not writable");
       }
-      $file = file_save_data($contents, $content_location, FileSystemInterface::EXISTS_REPLACE);
+      $file = \Drupal::service('file.repository')->writeData($contents, $content_location, FileSystemInterface::EXISTS_REPLACE);
       if ($media->hasField($destination_field)) {
         $media->{$destination_field}->setValue([
           'target_id' => $file->id(),
