@@ -68,7 +68,8 @@ class GenerateAudioDerivativeTest extends GenerateDerivativeTestBase {
       'field_media_of[0][target_id]' => 'Test Node',
       'field_tags[0][target_id]' => 'Preservation Master',
     ];
-    $this->drupalPostForm('media/add/' . $this->testMediaType->id(), $values, $this->t('Save'));
+    $this->drupalGet('media/add/' . $this->testMediaType->id());
+    $this->submitForm($values, $this->t('Save'));
 
     $expected = [
       'source_uri' => 'test_file.txt',

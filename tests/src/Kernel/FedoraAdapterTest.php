@@ -2,6 +2,9 @@
 
 namespace Drupal\Tests\islandora\Kernel;
 
+use Prophecy\PhpUnit\ProphecyTrait;
+use GuzzleHttp\Psr7\Utils;
+use function GuzzleHttp\Psr7\stream_for;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\islandora\Flysystem\Adapter\FedoraAdapter;
 use GuzzleHttp\Psr7\Response;
@@ -18,6 +21,7 @@ use Symfony\Component\Mime\MimeTypeGuesserInterface;
  */
 class FedoraAdapterTest extends IslandoraKernelTestBase {
 
+  use ProphecyTrait;
   /**
    * A mimetype guesser prophecy.
    *
@@ -35,7 +39,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
     $this->mimeGuesser = $this->prophesize(MimeTypeGuesserInterface::class)
       ->reveal();
@@ -58,10 +62,10 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $prophecy->getHeader('Content-Type')->willReturn(['text/plain']);
     $prophecy->getHeader('Content-Length')->willReturn([strlen("DERP")]);
     // phpcs:disable
-    if (class_exists(\GuzzleHttp\Psr7\Utils::class)) {
-      $prophecy->getBody()->willReturn(\GuzzleHttp\Psr7\Utils::streamFor("DERP"));
+    if (class_exists(Utils::class)) {
+      $prophecy->getBody()->willReturn(Utils::streamFor("DERP"));
     } else {
-      $prophecy->getBody()->willReturn(\GuzzleHttp\Psr7\stream_for("DERP"));
+      $prophecy->getBody()->willReturn(stream_for("DERP"));
     }
     // phpcs:enable
     return $prophecy;

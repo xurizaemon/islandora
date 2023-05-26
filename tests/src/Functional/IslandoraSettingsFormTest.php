@@ -14,7 +14,7 @@ class IslandoraSettingsFormTest extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Create a test user.
@@ -36,20 +36,25 @@ class IslandoraSettingsFormTest extends IslandoraFunctionalTestBase {
     $this->assertSession()->statusCodeEquals(200);
     $this->assertSession()->pageTextContains("JWT Expiry");
     $this->assertSession()->fieldValueEquals('edit-jwt-expiry', '+2 hour');
+    $this->drupalGet('/admin/config/islandora/core');
     // Blank is not allowed.
-    $this->drupalPostForm('/admin/config/islandora/core', ['edit-jwt-expiry' => ""], $this->t('Save configuration'));
+    $this->submitForm(['edit-jwt-expiry' => ""], $this->t('Save configuration'));
     $this->assertSession()->pageTextContainsOnce('"" is not a valid time or interval expression.');
+    $this->drupalGet('/admin/config/islandora/core');
     // Negative is not allowed.
-    $this->drupalPostForm('/admin/config/islandora/core', ['edit-jwt-expiry' => "-2 hours"], $this->t('Save configuration'));
+    $this->submitForm(['edit-jwt-expiry' => "-2 hours"], $this->t('Save configuration'));
     $this->assertSession()->pageTextContainsOnce('Time or interval expression cannot be negative');
+    $this->drupalGet('/admin/config/islandora/core');
     // Must include an integer value.
-    $this->drupalPostForm('/admin/config/islandora/core', ['edit-jwt-expiry' => "last hour"], $this->t('Save configuration'));
+    $this->submitForm(['edit-jwt-expiry' => "last hour"], $this->t('Save configuration'));
     $this->assertSession()->pageTextContainsOnce('No numeric interval specified, for example "1 day"');
+    $this->drupalGet('/admin/config/islandora/core');
     // Must have an accepted interval.
-    $this->drupalPostForm('/admin/config/islandora/core', ['edit-jwt-expiry' => "1 fortnight"], $this->t('Save configuration'));
+    $this->submitForm(['edit-jwt-expiry' => "1 fortnight"], $this->t('Save configuration'));
     $this->assertSession()->pageTextContainsOnce('No time interval found, please include one of');
+    $this->drupalGet('/admin/config/islandora/core');
     // Test a valid setting.
-    $this->drupalPostForm('/admin/config/islandora/core', ['edit-jwt-expiry' => "2 weeks"], $this->t('Save configuration'));
+    $this->submitForm(['edit-jwt-expiry' => "2 weeks"], $this->t('Save configuration'));
     $this->assertSession()->pageTextContainsOnce('The configuration options have been saved.');
 
   }

@@ -2,6 +2,7 @@
 
 namespace Drupal\islandora\EventSubscriber;
 
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Drupal\Core\Access\AccessManagerInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
@@ -13,7 +14,6 @@ use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -312,9 +312,9 @@ abstract class LinkHeaderSubscriber implements EventSubscriberInterface {
   /**
    * Adds resource-specific link headers to appropriate responses.
    *
-   * @param \Symfony\Component\HttpKernel\Event\FilterResponseEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\ResponseEvent $event
    *   Event containing the response.
    */
-  abstract public function onResponse(FilterResponseEvent $event);
+  abstract public function onResponse(ResponseEvent $event);
 
 }

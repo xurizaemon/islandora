@@ -17,7 +17,7 @@ class LoadTest extends IslandoraFunctionalTestBase {
    *
    * @var array
    */
-  public static $modules = ['islandora_text_extraction'];
+  protected static $modules = ['islandora_text_extraction'];
 
   /**
    * A user with permission to administer site configuration.
@@ -29,7 +29,7 @@ class LoadTest extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
     $this->user = $this->drupalCreateUser(['administer site configuration']);
     $this->drupalLogin($this->user);

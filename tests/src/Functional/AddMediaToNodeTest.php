@@ -31,7 +31,7 @@ class AddMediaToNodeTest extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     $this->node = $this->container->get('entity_type.manager')->getStorage('node')->create([

@@ -4,7 +4,6 @@ namespace Drupal\islandora_iiif\Plugin\views\style;
 
 use Drupal\views\Plugin\views\style\StylePluginBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Url;
@@ -93,16 +92,9 @@ class IIIFManifest extends StylePluginBase {
   protected $messenger;
 
   /**
-   * Module Handler for running hooks.
-   *
-   * @var \Drupal\Core\Extention\ModuleHandlerInterface
-   */
-  protected $moduleHandler;
-
-  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, EntityTypeManagerInterface $entity_type_manager, FileSystemInterface $file_system, Client $http_client, MessengerInterface $messenger, ModuleHandlerInterface $moduleHandler) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, EntityTypeManagerInterface $entity_type_manager, FileSystemInterface $file_system, Client $http_client, MessengerInterface $messenger) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->serializer = $serializer;
@@ -112,7 +104,6 @@ class IIIFManifest extends StylePluginBase {
     $this->fileSystem = $file_system;
     $this->httpClient = $http_client;
     $this->messenger = $messenger;
-    $this->moduleHandler = $moduleHandler;
   }
 
   /**
@@ -129,19 +120,8 @@ class IIIFManifest extends StylePluginBase {
       $container->get('entity_type.manager'),
       $container->get('file_system'),
       $container->get('http_client'),
-      $container->get('messenger'),
-      $container->get('module_handler')
+      $container->get('messenger')
     );
-  }
-
-  /**
-   * Return the request property.
-   *
-   * @return \Symfony\Component\HttpFoundation\Request
-   *   The Symfony request object
-   */
-  public function getRequest() {
-    return $this->request;
   }
 
   /**
@@ -189,9 +169,6 @@ class IIIFManifest extends StylePluginBase {
     unset($this->view->row_index);
 
     $content_type = 'json';
-
-    // Give other modules a chance to alter the manifest.
-    $this->moduleHandler->alter('islandora_iiif_manifest', $json, $this);
 
     return $this->serializer->serialize($json, $content_type, ['views_style_plugin' => $this]);
   }
@@ -310,13 +287,6 @@ class IIIFManifest extends StylePluginBase {
               'label' => 'hOCR embedded text',
             ];
           }
-
-          // Give other modules a chance to alter the canvas.
-          $alter_options = [
-            'options' => $this->options,
-            'views_plugin' => $this,
-          ];
-          $this->moduleHandler->alter('islandora_iiif_manifest_canvas', $tmp_canvas, $row, $alter_options);
 
           $canvases[] = $tmp_canvas;
         }
