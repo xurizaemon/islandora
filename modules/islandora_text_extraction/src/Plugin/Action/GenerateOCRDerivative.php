@@ -37,10 +37,9 @@ class GenerateOCRDerivative extends AbstractGenerateDerivative {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    
 
     $form['args']['#description'] = $this->t("Arguments to send to Tesseract. To generate hOCR, use:<br /><code>-c tessedit_create_hocr=1 -c hocr_font_info=0</code>");
-    
+
     return $form;
   }
 
