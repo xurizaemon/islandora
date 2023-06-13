@@ -3,6 +3,7 @@
 namespace Drupal\Tests\islandora\Functional;
 
 use function GuzzleHttp\json_decode;
+
 /**
  * Tests Jsonld Alter Reaction.
  *
