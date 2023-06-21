@@ -26,7 +26,7 @@ class ViewModeAlterReactionTest extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Node to be referenced via member of.

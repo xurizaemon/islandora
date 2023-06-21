@@ -2,9 +2,9 @@
 
 namespace Drupal\islandora\EventSubscriber;
 
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Drupal\node\NodeInterface;
 use Drupal\islandora\IslandoraUtils;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -17,10 +17,10 @@ class NodeLinkHeaderSubscriber extends LinkHeaderSubscriber implements EventSubs
   /**
    * Adds node-specific link headers to appropriate responses.
    *
-   * @param \Symfony\Component\HttpKernel\Event\FilterResponseEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\ResponseEvent $event
    *   Event containing the response.
    */
-  public function onResponse(FilterResponseEvent $event) {
+  public function onResponse(ResponseEvent $event) {
     $response = $event->getResponse();
 
     $node = $this->getObject($response, 'node');

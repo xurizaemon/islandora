@@ -88,7 +88,7 @@ class IslandoraFunctionalTestBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Delete the node rest config that's bootstrapped with Drupal.
@@ -314,7 +314,8 @@ EOD;
    * Create a new node by posting its add form.
    */
   protected function postNodeAddForm($bundle_id, $values, $button_text) {
-    $this->drupalPostForm("node/add/$bundle_id", $values, $this->t('@text', ['@text' => $button_text]));
+    $this->drupalGet("node/add/$bundle_id");
+    $this->submitForm($values, $this->t('@text', ['@text' => $button_text]));
     $this->assertSession()->statusCodeEquals(200);
   }
 
@@ -322,7 +323,8 @@ EOD;
    * Create a new node by posting its add form.
    */
   protected function postTermAddForm($taxomony_id, $values, $button_text) {
-    $this->drupalPostForm("admin/structure/taxonomy/manage/$taxomony_id/add", $values, $this->t('@text', ['@text' => $button_text]));
+    $this->drupalGet("admin/structure/taxonomy/manage/$taxomony_id/add");
+    $this->submitForm($values, $this->t('@text', ['@text' => $button_text]));
     $this->assertSession()->statusCodeEquals(200);
   }
 
@@ -330,7 +332,8 @@ EOD;
    * Edits a node by posting its edit form.
    */
   protected function postEntityEditForm($entity_url, $values, $button_text) {
-    $this->drupalPostForm("$entity_url/edit", $values, $this->t('@text', ['@text' => $button_text]));
+    $this->drupalGet("$entity_url/edit");
+    $this->submitForm($values, $this->t('@text', ['@text' => $button_text]));
     $this->assertSession()->statusCodeEquals(200);
   }
 

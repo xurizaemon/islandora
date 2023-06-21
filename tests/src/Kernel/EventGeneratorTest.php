@@ -41,7 +41,7 @@ class EventGeneratorTest extends IslandoraKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Create a test user.
