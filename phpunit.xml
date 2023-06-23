@@ -58,7 +58,7 @@
     </testsuite>
     <testsuite name="functional">
       <directory>../modules/contrib/islandora/tests/src/Functional</directory>
-      <directory>../modules/contrib/isladnora/modules/*/tests/src/Functional</directory>
+      <directory>../modules/contrib/islandora/modules/*/tests/src/Functional</directory>
     </testsuite>
     <testsuite name="functional-javascript">
       <directory>../modules/contrib/islandora/tests/src/FunctionalJavascript</directory>

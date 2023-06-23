@@ -28,7 +28,7 @@ jobs:
         # test-suite functional-javascript will appear to pass but will skip tests; missing chromedriver.
         test-suite: ["kernel", "functional", "functional-javascript"]
         # Not yet Drupal 10 ready - see https://github.com/Islandora/islandora/issues/888
-        drupal-version: ["9.3.x", "9.4.x", "9.5.x-dev"]
+        drupal-version: ["9.4.x", "9.5.x-dev"]
         mysql: ["8.0"]
         allowed_failure: [false]
 
