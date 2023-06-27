@@ -3,7 +3,7 @@ status: true
 dependencies:
   config:
     - field.field.media.test_media_type.field_media_of
-    - field.field.media.test_media_type.field_tags
+    - field.field.media.test_media_type.field_media_use
     - media.type.test_media_type
   module:
     - path
@@ -37,7 +37,7 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_tags:
+  field_media_use:
     type: entity_reference_autocomplete
     weight: 3
     region: content
