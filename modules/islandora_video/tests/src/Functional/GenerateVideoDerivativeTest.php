@@ -63,7 +63,7 @@ class GenerateVideoDerivativeTest extends GenerateDerivativeTestBase {
       'name[0][value]' => 'Test Media',
       'files[field_media_file_0]' => __DIR__ . '/../../fixtures/test_file.txt',
       'field_media_of[0][target_id]' => 'Test Node',
-      'field_media_use[0][target_id]' => 'foo',
+      'field_media_use[0][target_id]' => $this->preservationMasterTerm->label(),
     ];
     $this->drupalGet('media/add/' . $this->testMediaType->id());
     $this->submitForm($values, $this->t('Save'));
