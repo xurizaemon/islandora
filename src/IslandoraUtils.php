@@ -148,7 +148,7 @@ class IslandoraUtils {
       return [];
     }
     $mids = $this->entityTypeManager->getStorage('media')->getQuery()
-      ->accessCheck(FALSE)
+      ->accessCheck(TRUE)
       ->condition(self::MEDIA_OF_FIELD, $node->id())
       ->execute();
     if (empty($mids)) {
@@ -209,7 +209,7 @@ class IslandoraUtils {
 
     // Query for media that reference this file.
     $query = $this->entityTypeManager->getStorage('media')->getQuery();
-    $query->accessCheck(FALSE);
+    $query->accessCheck(TRUE);
     $group = $query->orConditionGroup();
     foreach ($conditions as $condition) {
       $group->condition($condition, $fid);
@@ -254,7 +254,7 @@ class IslandoraUtils {
     }
 
     $results = $query
-      ->accessCheck(FALSE)
+      ->accessCheck(TRUE)
       ->condition($orGroup)
       ->execute();
 
@@ -501,7 +501,7 @@ class IslandoraUtils {
     array_walk($node_fields, $remove_entity);
 
     $query = $this->entityTypeManager->getStorage('media')->getQuery();
-    $query->accessCheck(FALSE);
+    $query->accessCheck(TRUE);
     $taxon_condition = $this->getEntityQueryOrCondition($query, $term_fields, $term->id());
     $query->condition($taxon_condition);
     $node_condition = $this->getEntityQueryOrCondition($query, $node_fields, $node->id());
