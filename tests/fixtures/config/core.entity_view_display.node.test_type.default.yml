@@ -1,11 +1,12 @@
+uuid: 36f4aecf-0e14-4281-a213-ca7d129da52a
 langcode: en
 status: true
 dependencies:
   config:
     - field.field.node.test_type.field_member_of
+    - field.field.node.test_type.field_model
     - node.type.test_type
   module:
-    - text
     - user
 id: node.test_type.default
 targetEntityType: node
@@ -13,14 +14,24 @@ bundle: test_type
 mode: default
 content:
   field_member_of:
-    weight: 102
+    type: entity_reference_label
     label: above
     settings:
       link: true
     third_party_settings: {  }
+    weight: 102
+    region: content
+  field_model:
     type: entity_reference_label
+    label: above
+    settings:
+      link: true
+    third_party_settings: {  }
+    weight: 103
     region: content
   links:
+    settings: {  }
+    third_party_settings: {  }
     weight: 100
     region: content
 hidden:

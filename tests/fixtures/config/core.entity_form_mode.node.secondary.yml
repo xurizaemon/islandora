@@ -1,9 +1,10 @@
+uuid: d9f22219-ff4c-48cc-a98a-6ccaad7a880d
 langcode: en
 status: true
 dependencies:
   module:
     - node
 id: node.secondary
-label: Secondary 
+label: Secondary
 targetEntityType: node
 cache: true

@@ -1,3 +1,4 @@
+uuid: 9a5633b1-6a1a-40b2-8482-c24cf44122ff
 langcode: en
 status: true
 dependencies:
@@ -5,7 +6,7 @@ dependencies:
     - basic_auth
     - jsonld
     - jwt
-    - media_entity
+    - media
     - serialization
     - user
 id: entity.media
