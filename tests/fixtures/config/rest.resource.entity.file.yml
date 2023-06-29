@@ -1,3 +1,4 @@
+uuid: 11c4e25e-6b06-4270-b934-243e4f4aade1
 langcode: en
 status: true
 dependencies:
@@ -26,3 +27,4 @@ configuration:
     supported_auth:
       - basic_auth
       - jwt_auth
+      - cookie
