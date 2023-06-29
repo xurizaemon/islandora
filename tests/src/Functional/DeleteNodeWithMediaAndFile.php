@@ -42,8 +42,8 @@ class DeleteNodeWithMediaAndFile extends IslandoraFunctionalTestBase {
       'uri' => "public://test.jpeg",
       'filename' => "test.jpeg",
       'filemime' => "image/jpeg",
-      'status' => FILE_STATUS_PERMANENT,
     ]);
+    $file->setPermanent();
     $file->save();
 
     $this->drupalGet("node/1/delete");
