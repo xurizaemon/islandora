@@ -30,7 +30,7 @@ class JsonldTypeAlterReactionTest extends JsonldSelfReferenceReactionTest {
       'new_storage_type' => 'string',
       'label' => 'Typed Predicate',
       'field_name' => 'type_predicate',
-    ], $this->t('Save and continue'));
+    ], 'Save and continue');
     $this->submitForm([], $this->t('Save field settings'));
     $this->submitForm([], $this->t('Save settings'));
     $this->assertSession()->responseContains('field_type_predicate');

@@ -59,8 +59,8 @@ class IslandoraImageFormatterTest extends IslandoraFunctionalTestBase {
       'uri' => "public://test.jpeg",
       'filename' => "test.jpeg",
       'filemime' => "image/jpeg",
-      'status' => FILE_STATUS_PERMANENT,
     ]);
+    $file->setPermanent();
     $file->save();
 
     // Make the media, and associate it with the image and node.
