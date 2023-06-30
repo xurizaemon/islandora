@@ -116,7 +116,6 @@ class EventGeneratorTest extends IslandoraKernelTestBase {
       ['event' => 'delete', 'queue' => 'islandora-indexing-fcrepo-delete']
     );
     $msg = json_decode($json, TRUE);
-    $msg = json_decode($json, TRUE);
 
     $this->assertBasicStructure($msg);
     $this->assertTrue($msg["type"] == "Delete", "Event must be of type 'Delete'.");
