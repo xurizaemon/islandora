@@ -1,9 +1,11 @@
+uuid: 9151a0fe-7729-4943-b506-dd6f8d12ceac
 langcode: en
 status: true
 dependencies:
   config:
+    - field.field.media.test_media_type.field_media_file
     - field.field.media.test_media_type.field_media_of
-    - field.field.media.test_media_type.field_tags
+    - field.field.media.test_media_type.field_media_use
     - media.type.test_media_type
   module:
     - path
@@ -34,15 +36,17 @@ content:
     region: content
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  field_tags:
+  field_media_use:
     type: entity_reference_autocomplete
     weight: 3
     region: content
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
     third_party_settings: {  }
@@ -64,6 +68,7 @@ content:
     weight: 4
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
     region: content

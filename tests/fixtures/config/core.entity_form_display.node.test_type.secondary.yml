@@ -1,12 +1,12 @@
+uuid: e24c2b3c-60e4-4ff5-99cb-80e5e67e7b04
 langcode: en
 status: true
 dependencies:
   config:
+    - core.entity_form_mode.node.secondary
     - field.field.node.test_type.field_member_of
+    - field.field.node.test_type.field_model
     - node.type.test_type
-  module:
-    - path
-    - text
 id: node.test_type.secondary
 targetEntityType: node
 bundle: test_type
@@ -23,6 +23,8 @@ content:
 hidden:
   created: true
   field_media: true
+  field_member_of: true
+  field_model: true
   field_node: true
   langcode: true
   path: true

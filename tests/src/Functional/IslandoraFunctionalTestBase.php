@@ -438,8 +438,8 @@ EOD;
         'uri' => "public://test_file.txt",
         'filename' => "test_file.txt",
         'filemime' => "text/plain",
-        'status' => FILE_STATUS_PERMANENT,
       ]);
+    $file->setPermanent();
     $file->save();
 
     // Get the source field for the media.
