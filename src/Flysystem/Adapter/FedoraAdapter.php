@@ -3,7 +3,6 @@
 namespace Drupal\islandora\Flysystem\Adapter;
 
 use GuzzleHttp\Psr7\Header;
-use function GuzzleHttp\Psr7\parse_header;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Islandora\Chullo\IFedoraApi;
 use League\Flysystem\AdapterInterface;

@@ -4,7 +4,6 @@ namespace Drupal\Tests\islandora\Kernel;
 
 use Prophecy\PhpUnit\ProphecyTrait;
 use GuzzleHttp\Psr7\Utils;
-use function GuzzleHttp\Psr7\stream_for;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\islandora\Flysystem\Adapter\FedoraAdapter;
 use GuzzleHttp\Psr7\Response;
