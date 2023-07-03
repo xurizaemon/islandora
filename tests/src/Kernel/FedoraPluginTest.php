@@ -6,6 +6,7 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\islandora\Flysystem\Fedora;
 use Islandora\Chullo\IFedoraApi;
 use League\Flysystem\AdapterInterface;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Mime\MimeTypeGuesserInterface;
 
@@ -16,6 +17,8 @@ use Symfony\Component\Mime\MimeTypeGuesserInterface;
  * @coversDefaultClass \Drupal\islandora\Flysystem\Fedora
  */
 class FedoraPluginTest extends IslandoraKernelTestBase {
+
+  use ProphecyTrait;
 
   /**
    * Mocks up a plugin.

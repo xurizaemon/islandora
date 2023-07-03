@@ -160,14 +160,8 @@ class FedoraAdapter implements AdapterInterface {
     // NonRDFSource's are considered files.  Everything else is a
     // directory.
     $type = 'dir';
-    // phpcs:disable
-    if (class_exists(Header::class)) {
-      $links = Header::parse($response->getHeader('Link'));
-    }
-    else {
-      $links = parse_header($response->getHeader('Link'));
-    }
-    // phpcs:enable
+    $links = Header::parse($response->getHeader('Link'));
+
     foreach ($links as $link) {
       if ($link['rel'] == 'type' && $link[0] == '<http://www.w3.org/ns/ldp#NonRDFSource>') {
         $type = 'file';
@@ -403,14 +397,7 @@ class FedoraAdapter implements AdapterInterface {
     $return = NULL;
     if ($response->getStatusCode() == 410) {
       $return = FALSE;
-      // phpcs:disable
-      if (class_exists(Header::class)) {
-        $link_headers = Header::parse($response->getHeader('Link'));
-      }
-      else {
-        $link_headers = parse_header($response->getHeader('Link'));
-      }
-      // phpcs:enable
+      $link_headers = Header::parse($response->getHeader('Link'));
       if ($link_headers) {
         $tombstones = array_filter($link_headers, function ($o) {
           return (isset($o['rel']) && $o['rel'] == 'hasTombstone');

@@ -61,13 +61,8 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
       ]);
     $prophecy->getHeader('Content-Type')->willReturn(['text/plain']);
     $prophecy->getHeader('Content-Length')->willReturn([strlen("DERP")]);
-    // phpcs:disable
-    if (class_exists(Utils::class)) {
-      $prophecy->getBody()->willReturn(Utils::streamFor("DERP"));
-    } else {
-      $prophecy->getBody()->willReturn(stream_for("DERP"));
-    }
-    // phpcs:enable
+    $prophecy->getBody()->willReturn(Utils::streamFor("DERP"));
+
     return $prophecy;
   }
 

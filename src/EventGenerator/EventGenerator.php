@@ -192,6 +192,7 @@ class EventGenerator implements EventGeneratorInterface {
   protected function getRevisionIds(Media $media, EntityStorageInterface $media_storage) {
     $result = $media_storage->getQuery()
       ->allRevisions()
+      ->accessCheck(TRUE)
       ->condition($media->getEntityType()->getKey('id'), $media->id())
       ->sort($media->getEntityType()->getKey('revision'), 'DESC')
       ->execute();
