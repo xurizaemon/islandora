@@ -137,8 +137,11 @@ class ConfirmDeleteMediaAndFile extends DeleteMultipleForm {
               $inaccessible_entities[] = $file;
               continue;
             }
-            $delete_files[$file->id()] = $file;
-            $total_count++;
+            if (!array_key_exists($file->id(), $delete_files)) {
+              $delete_files[$file->id()] = $file;
+              $total_count++;
+            }
+
           }
         }
       }
