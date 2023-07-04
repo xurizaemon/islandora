@@ -235,7 +235,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $head_prophecy = $this->prophesize(Response::class);
     $head_prophecy->getStatusCode()->willReturn(410);
     $head_prophecy->getHeader('Link')
-      ->willReturn('<some-path-to-a-tombstone>; rel="hasTombstone"');
+      ->willReturn(['<some-path-to-a-tombstone>; rel="hasTombstone"']);
 
     $tombstone_prophecy = $this->prophesize(Response::class);
     $tombstone_prophecy->getStatusCode()->willReturn(204);
@@ -263,7 +263,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $head_prophecy = $this->prophesize(Response::class);
     $head_prophecy->getStatusCode()->willReturn(410);
     $head_prophecy->getHeader('Link')
-      ->willReturn('<some-path-to-a-tombstone>; rel="hasTombstone"');
+      ->willReturn(['<some-path-to-a-tombstone>; rel="hasTombstone"']);
 
     $tombstone_prophecy = $this->prophesize(Response::class);
     $tombstone_prophecy->getStatusCode()->willReturn(500);
