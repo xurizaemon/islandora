@@ -50,7 +50,7 @@ class DeleteMediaTest extends IslandoraFunctionalTestBase {
   public function setUp(): void {
     parent::setUp();
 
-    if (floatval(\Drupal::VERSION) >= 10.1) {
+    if (version_compare(\Drupal::VERSION, '10.1', '>=')){
       $permissions = ['create media', 'delete any media', 'delete any files'];
     } else {
       $permissions = ['create media', 'delete any media'];
