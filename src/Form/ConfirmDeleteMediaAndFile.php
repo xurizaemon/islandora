@@ -128,6 +128,9 @@ class ConfirmDeleteMediaAndFile extends DeleteMultipleForm {
       // Check for files.
       $fields = $this->entityFieldManager->getFieldDefinitions('media', $entity->bundle());
       foreach ($fields as $field) {
+        if ($field->getName() == 'thumbnail') {
+          continue;
+        }
         $type = $field->getType();
         if ($type == 'file' || $type == 'image') {
           $target_id = $entity->get($field->getName())->target_id;
@@ -137,8 +140,11 @@ class ConfirmDeleteMediaAndFile extends DeleteMultipleForm {
               $inaccessible_entities[] = $file;
               continue;
             }
-            $delete_files[$file->id()] = $file;
-            $total_count++;
+            if (!array_key_exists($file->id(), $delete_files)) {
+              $delete_files[$file->id()] = $file;
+              $total_count++;
+            }
+
           }
         }
       }

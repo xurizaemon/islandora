@@ -128,6 +128,7 @@ class NodeReferencedByNode extends ConditionPluginBase implements ContainerFacto
     $config = FieldStorageConfig::loadByName('node', $reference_field);
     if ($config) {
       $id_count = \Drupal::entityQuery('node')
+        ->accessCheck(TRUE)
         ->condition($reference_field, $entity->id())
         ->count()
         ->execute();

@@ -50,8 +50,15 @@ class DeleteMediaTest extends IslandoraFunctionalTestBase {
   public function setUp(): void {
     parent::setUp();
 
+    if (version_compare(\Drupal::VERSION, '10.1', '>=')) {
+      $permissions = ['create media', 'delete any media', 'delete any file'];
+    }
+    else {
+      $permissions = ['create media', 'delete any media'];
+    }
+
     // Create a test user.
-    $this->account = $this->createUser(['create media', 'delete any media']);
+    $this->account = $this->createUser($permissions);
 
     list($this->file, $this->media) = $this->makeMediaAndFile($this->account);
   }
