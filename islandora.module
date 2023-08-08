@@ -332,6 +332,7 @@ function islandora_form_alter(&$form, FormStateInterface $form_state, $form_id) 
       if ($node) {
         $form['name']['widget'][0]['value']['#default_value'] = $node->getTitle();
       }
+      $form['actions']['submit']['#submit'][] = 'islandora_media_custom_form_submit';
     }
   }
 
@@ -385,6 +386,20 @@ function islandora_form_alter(&$form, FormStateInterface $form_state, $form_id) 
   }
 
   return $form;
+}
+
+/**
+ * Redirect submit handler for media save.
+ */
+function islandora_media_custom_form_submit(&$form, FormStateInterface $form_state) {
+  $params = \Drupal::request()->query->all();
+
+  if (!empty($params)) {
+    $target_id = $params['edit']['field_media_of']['widget'][0]['target_id'];
+    $url = Url::fromRoute('entity.node.canonical', ['node' => $target_id]);
+    $form_state->setRedirectUrl($url);
+  }
+
 }
 
 /**
