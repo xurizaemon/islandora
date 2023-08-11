@@ -214,7 +214,7 @@ class IslandoraSettingsForm extends ConfigFormBase {
     $form[self::REDIRECT_AFTER_MEDIA_SAVE] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Redirect after media save.'),
-      '#description' => $this->t('Redirect to node page after creation of media.'),
+      '#description' => $this->t('Redirect to node-specific media list after creation of media.'),
       '#default_value' => (bool) $config->get(self::REDIRECT_AFTER_MEDIA_SAVE),
     ];
 
