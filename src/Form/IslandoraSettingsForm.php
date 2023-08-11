@@ -43,6 +43,7 @@ class IslandoraSettingsForm extends ConfigFormBase {
   ];
   const GEMINI_PSEUDO_FIELD = 'field_gemini_uri';
   const NODE_DELETE_MEDIA_AND_FILES = 'delete_media_and_files';
+  const REDIRECT_AFTER_MEDIA_SAVE = 'redirect_after_media_save';
 
   /**
    * To list the available bundle types.
@@ -210,6 +211,13 @@ class IslandoraSettingsForm extends ConfigFormBase {
       '#default_value' => (bool) $config->get(self::NODE_DELETE_MEDIA_AND_FILES),
     ];
 
+    $form[self::REDIRECT_AFTER_MEDIA_SAVE] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Redirect after media save.'),
+      '#description' => $this->t('Redirect to node page after creation of media.'),
+      '#default_value' => (bool) $config->get(self::REDIRECT_AFTER_MEDIA_SAVE),
+    ];
+
     $form[self::FEDORA_URL] = [
       '#type' => 'textfield',
       '#title' => $this->t('Fedora URL'),
@@ -361,6 +369,7 @@ class IslandoraSettingsForm extends ConfigFormBase {
       ->set(self::UPLOAD_FORM_ALLOWED_MIMETYPES, $form_state->getValue(self::UPLOAD_FORM_ALLOWED_MIMETYPES))
       ->set(self::GEMINI_PSEUDO, $new_pseudo_types)
       ->set(self::NODE_DELETE_MEDIA_AND_FILES, $form_state->getValue(self::NODE_DELETE_MEDIA_AND_FILES))
+      ->set(self::REDIRECT_AFTER_MEDIA_SAVE, $form_state->getValue(self::REDIRECT_AFTER_MEDIA_SAVE))
       ->save();
 
     parent::submitForm($form, $form_state);

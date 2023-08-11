@@ -17,6 +17,9 @@ islandora.settings:
     delete_media_and_files:
       type: boolean
       label: 'Node Delete with Media and Files'
+    redirect_after_media_save:
+      type: boolean
+      label: 'Redirect to node after media save.'
     upload_form_location:
       type: string
       label: 'Upload Form Location'

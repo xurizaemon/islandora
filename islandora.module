@@ -392,14 +392,16 @@ function islandora_form_alter(&$form, FormStateInterface $form_state, $form_id) 
  * Redirect submit handler for media save.
  */
 function islandora_media_custom_form_submit(&$form, FormStateInterface $form_state) {
-  $params = \Drupal::request()->query->all();
-
-  if (!empty($params)) {
-    $target_id = $params['edit']['field_media_of']['widget'][0]['target_id'];
-    $url = Url::fromRoute('entity.node.canonical', ['node' => $target_id]);
-    $form_state->setRedirectUrl($url);
+  // Check configuration to see whether a redirect is desired.
+  $redirect = \Drupal::config('islandora.settings')->get('redirect_after_media_save');
+  if ($redirect) {
+    $params = \Drupal::request()->query->all();
+    if (!empty($params)) {
+      $target_id = $params['edit']['field_media_of']['widget'][0]['target_id'];
+      $url = Url::fromRoute('view.media_of.page_1', ['node' => $target_id]);
+      $form_state->setRedirectUrl($url);
+    }
   }
-
 }
 
 /**
