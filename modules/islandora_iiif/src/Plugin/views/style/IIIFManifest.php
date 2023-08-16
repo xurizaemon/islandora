@@ -313,6 +313,12 @@ class IIIFManifest extends StylePluginBase {
    *   The width and height of the image.
    */
   protected function getCanvasDimensions(string $iiif_url, FieldItemInterface $image, string $mime_type) {
+
+    if (isset($image->width) && is_numeric($image->width)
+    && isset($image->height) && is_numeric($image->height)) {
+      return [intval($image->width), intval($image->height)];
+    }
+
     try {
       $info_json = $this->httpClient->get($iiif_url)->getBody();
       $resource = json_decode($info_json, TRUE);
