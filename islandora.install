@@ -212,3 +212,17 @@ function islandora_update_8007() {
   // have the here, just in case?
   throw new UpdateException('Failed; hit the end of the update hook implementation, which is not expected.');
 }
+
+/**
+ * Set config to no redirect after media save.
+ */
+function islandora_update_8008() {
+  $config = \Drupal::configFactory()->getEditable('islandora.settings');
+  if ($config) {
+    $config->set('redirect_after_media_save', FALSE);
+    $config->save(TRUE);
+    return t('A new configuration option, "Redirect after media save" is now available. 
+    It has been turned off to preserve existing behaviour. To enable this setting visit 
+    Configuration > Islandora > Core Settings.');
+  }
+}
