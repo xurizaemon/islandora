@@ -167,6 +167,7 @@ class IslandoraSettingsForm extends ConfigFormBase {
       ],
       '#config' => [
         'key' => 'islandora.settings:' . self::BROKER_PASSWORD,
+        'secret' => TRUE,
       ],
     ];
     $form[self::JWT_EXPIRY] = [
