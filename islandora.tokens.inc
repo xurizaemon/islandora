@@ -134,7 +134,7 @@ function islandora_tokens($type, $tokens, array $data, array $options, Bubbleabl
           break;
 
         case 'pdf_url':
-          $replacements[$original] = ' ' . islandora_url_to_service_file_media_by_mimetype($data['node'], 'application/pdf');
+          $replacements[$original] = islandora_url_to_service_file_media_by_mimetype($data['node'], 'application/pdf');
           break;
       }
     }
@@ -188,4 +188,5 @@ function islandora_url_to_service_file_media_by_mimetype($node, $mime_type) {
       }
     }
   }
+  return '';
 }
