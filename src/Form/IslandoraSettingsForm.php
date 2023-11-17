@@ -129,6 +129,9 @@ class IslandoraSettingsForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('URL'),
       '#default_value' => $config->get(self::BROKER_URL),
+      '#config' => [
+        'key' => 'islandora.settings:' . self::BROKER_URL,
+      ],
     ];
     $broker_user = $config->get(self::BROKER_USER);
     $form['broker_info']['provide_user_creds'] = [
@@ -149,6 +152,9 @@ class IslandoraSettingsForm extends ConfigFormBase {
           $state_selector => ['checked' => TRUE],
         ],
       ],
+      '#config' => [
+        'key' => 'islandora.settings:' . self::BROKER_USER,
+      ],
     ];
     $form['broker_info'][self::BROKER_PASSWORD] = [
       '#type' => 'password',
@@ -158,6 +164,10 @@ class IslandoraSettingsForm extends ConfigFormBase {
         'visible' => [
           $state_selector => ['checked' => TRUE],
         ],
+      ],
+      '#config' => [
+        'key' => 'islandora.settings:' . self::BROKER_PASSWORD,
+        'secret' => TRUE,
       ],
     ];
     $form[self::JWT_EXPIRY] = [
@@ -221,7 +231,11 @@ class IslandoraSettingsForm extends ConfigFormBase {
     $form[self::FEDORA_URL] = [
       '#type' => 'textfield',
       '#title' => $this->t('Fedora URL'),
-      '#attributes' => ['readonly' => 'readonly'],
+      '#description' => $this->t('Read-only. This value is set in settings.php as the URL for the Fedora flysystem.'),
+      '#attributes' => [
+        'readonly' => 'readonly',
+        'disabled' => 'disabled',
+      ],
       '#default_value' => $fedora_url,
     ];
 

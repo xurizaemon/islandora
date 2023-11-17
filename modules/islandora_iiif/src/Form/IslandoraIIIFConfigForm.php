@@ -72,6 +72,9 @@ class IslandoraIIIFConfigForm extends ConfigFormBase {
       '#title' => $this->t('IIIF Image server location'),
       '#description' => $this->t('Please enter the image server location without trailing slash. e.g. http://www.example.org/iiif/2.'),
       '#default_value' => $config->get('iiif_server'),
+      '#config' => [
+        'key' => 'islandora_iiif.settings:iiif_server',
+      ],
     ];
 
     $form['use_relative_paths'] = [
