@@ -5,7 +5,7 @@ namespace Drupal\islandora\Plugin\Field\FieldFormatter;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Core\File\FileUrlGenerator;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\image\Plugin\Field\FieldFormatter\ImageFormatter;
 use Drupal\islandora\IslandoraUtils;
@@ -57,7 +57,7 @@ class IslandoraImageFormatter extends ImageFormatter {
    *   The image style storage.
    * @param \Drupal\islandora\IslandoraUtils $utils
    *   Islandora utils.
-   * @param \Drupal\Core\File\FileUrlGenerator $file_url_generator
+   * @param \Drupal\Core\File\FileUrlGeneratorInterface $file_url_generator
    *   The File URL Generator.
    */
   public function __construct(
@@ -71,7 +71,7 @@ class IslandoraImageFormatter extends ImageFormatter {
     AccountInterface $current_user,
     EntityStorageInterface $image_style_storage,
     IslandoraUtils $utils,
-    FileUrlGenerator $file_url_generator
+    FileUrlGeneratorInterface $file_url_generator
   ) {
     parent::__construct(
       $plugin_id,
