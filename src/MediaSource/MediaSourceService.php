@@ -3,6 +3,7 @@
 namespace Drupal\islandora\MediaSource;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -113,8 +114,12 @@ class MediaSourceService {
    * @param \Drupal\media\MediaInterface $media
    *   Media whose source field you are searching for.
    *
-   * @return \Drupal\file\FileInterface
-   *   File if it exists
+   * @return \Drupal\file\FileInterface|\Drupal\Core\Entity\EntityInterface|false|null
+   *   The first source entity if there is one, generally expected to be of
+   *   \Drupal\file\FileInterface. Boolean FALSE if there was no such entity.
+   *   NULL if the source field does not refer to Drupal entities (as in, the
+   *   field is not a \Drupal\Core\Field\EntityReferenceFieldItemListInterface
+   *   implementation).
    *
    * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
    */
@@ -127,10 +132,13 @@ class MediaSourceService {
     }
 
     // Get the file from the media.
-    $files = $media->get($source_field)->referencedEntities();
-    $file = reset($files);
+    $source_list = $media->get($source_field);
+    if ($source_list instanceof EntityReferenceFieldItemListInterface) {
+      $files = $source_list->referencedEntities();
+      return reset($files);
+    }
 
-    return $file;
+    return NULL;
   }
 
   /**
@@ -268,8 +276,8 @@ class MediaSourceService {
         'uri' => $content_location,
         'filename' => $this->fileSystem->basename($content_location),
         'filemime' => $mimetype,
-        'status' => FILE_STATUS_PERMANENT,
       ]);
+      $file->setPermanent();
 
       // Validate file extension.
       $source_field_config = $this->entityTypeManager->getStorage('field_config')->load("media.$bundle.$source_field");
@@ -349,8 +357,8 @@ class MediaSourceService {
         'uri' => $content_location,
         'filename' => $this->fileSystem->basename($content_location),
         'filemime' => $mimetype,
-        'status' => FILE_STATUS_PERMANENT,
       ]);
+      $file->setPermanent();
 
       // Validate file extension.
       $bundle = $media->bundle();

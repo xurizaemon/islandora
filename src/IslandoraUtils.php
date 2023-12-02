@@ -148,6 +148,7 @@ class IslandoraUtils {
       return [];
     }
     $mids = $this->entityTypeManager->getStorage('media')->getQuery()
+      ->accessCheck(TRUE)
       ->condition(self::MEDIA_OF_FIELD, $node->id())
       ->execute();
     if (empty($mids)) {
@@ -208,6 +209,7 @@ class IslandoraUtils {
 
     // Query for media that reference this file.
     $query = $this->entityTypeManager->getStorage('media')->getQuery();
+    $query->accessCheck(TRUE);
     $group = $query->orConditionGroup();
     foreach ($conditions as $condition) {
       $group->condition($condition, $fid);
@@ -252,6 +254,7 @@ class IslandoraUtils {
     }
 
     $results = $query
+      ->accessCheck(TRUE)
       ->condition($orGroup)
       ->execute();
 
@@ -498,6 +501,7 @@ class IslandoraUtils {
     array_walk($node_fields, $remove_entity);
 
     $query = $this->entityTypeManager->getStorage('media')->getQuery();
+    $query->accessCheck(TRUE);
     $taxon_condition = $this->getEntityQueryOrCondition($query, $term_fields, $term->id());
     $query->condition($taxon_condition);
     $node_condition = $this->getEntityQueryOrCondition($query, $node_fields, $node->id());
@@ -670,6 +674,85 @@ class IslandoraUtils {
     }
 
     return FALSE;
+  }
+
+  /**
+   * Recursively finds ancestors of an entity.
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   The entity being checked.
+   * @param array $fields
+   *   An optional array where the values are the field names to be used for
+   *   retrieval.
+   * @param int|bool $max_height
+   *   How many levels of checking should be done when retrieving ancestors.
+   *
+   * @return array
+   *   An array where the keys and values are the node IDs of the ancestors.
+   */
+  public function findAncestors(ContentEntityInterface $entity, array $fields = [self::MEMBER_OF_FIELD], $max_height = FALSE): array {
+    // XXX: If a negative integer is passed assume it's false.
+    if ($max_height < 0) {
+      $max_height = FALSE;
+    }
+    $context = [
+      'max_height' => $max_height,
+      'ancestors' => [],
+    ];
+    $this->findAncestorsByEntityReference($entity, $context, $fields);
+    return $context['ancestors'];
+  }
+
+  /**
+   * Helper that builds up the ancestors.
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   The entity being checked.
+   * @param array $context
+   *   An array containing:
+   *     -ancestors: The ancestors that have been found.
+   *     -max_height: How far up the chain to go.
+   * @param array $fields
+   *   An optional array where the values are the field names to be used for
+   *   retrieval.
+   * @param int $current_height
+   *   The current height of the recursion.
+   */
+  protected function findAncestorsByEntityReference(ContentEntityInterface $entity, array &$context, array $fields = [self::MEMBER_OF_FIELD], int $current_height = 1): void {
+    $parents = $this->getParentsByEntityReference($entity, $fields);
+    foreach ($parents as $parent) {
+      if (isset($context['ancestors'][$parent->id()])) {
+        continue;
+      }
+      $context['ancestors'][$parent->id()] = $parent->id();
+      if ($context['max_height'] === FALSE || $current_height < $context['max_height']) {
+        $this->findAncestorsByEntityReference($parent, $context, $fields, $current_height + 1);
+      }
+    }
+  }
+
+  /**
+   * Helper that gets the immediate parents of a node.
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   The entity being checked.
+   * @param array $fields
+   *   An array where the values are the field names to be used.
+   *
+   * @return array
+   *   An array of entity objects keyed by field item deltas.
+   */
+  protected function getParentsByEntityReference(ContentEntityInterface $entity, array $fields): array {
+    $parents = [];
+    foreach ($fields as $field) {
+      if ($entity->hasField($field)) {
+        $reference_field = $entity->get($field);
+        if (!$reference_field->isEmpty()) {
+          $parents = array_merge($parents, $reference_field->referencedEntities());
+        }
+      }
+    }
+    return $parents;
   }
 
 }

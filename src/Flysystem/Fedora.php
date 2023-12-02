@@ -3,6 +3,7 @@
 namespace Drupal\islandora\Flysystem;
 
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Url;
@@ -12,12 +13,11 @@ use Drupal\islandora\Flysystem\Adapter\FedoraAdapter;
 use Drupal\jwt\Authentication\Provider\JwtAuth;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Client;
-use Islandora\Chullo\IFedoraApi;
 use Islandora\Chullo\FedoraApi;
+use Islandora\Chullo\IFedoraApi;
 use Psr\Http\Message\RequestInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
 
 /**
  * Drupal plugin for the Fedora Flysystem adapter.
@@ -38,7 +38,7 @@ class Fedora implements FlysystemPluginInterface, ContainerFactoryPluginInterfac
   /**
    * Mimetype guesser.
    *
-   * @var \Symfony\Component\HttpFoundation\File\Mimetype\MimeTypeGuesserInterface
+   * @var \Symfony\Component\Mime\MimeTypeGuesserInterface
    */
   protected $mimeTypeGuesser;
 
@@ -50,23 +50,34 @@ class Fedora implements FlysystemPluginInterface, ContainerFactoryPluginInterfac
   protected $languageManager;
 
   /**
+   * Logger.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected $logger;
+
+  /**
    * Constructs a Fedora plugin for Flysystem.
    *
    * @param \Islandora\Chullo\IFedoraApi $fedora
    *   Fedora client.
-   * @param \Symfony\Component\HttpFoundation\File\Mimetype\MimeTypeGuesserInterface $mime_type_guesser
+   * @param \Symfony\Component\Mime\MimeTypeGuesserInterface $mime_type_guesser
    *   Mimetype guesser.
    * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
    *   Language manager.
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   *   The fedora adapter logger channel.
    */
   public function __construct(
     IFedoraApi $fedora,
     MimeTypeGuesserInterface $mime_type_guesser,
-    LanguageManagerInterface $language_manager
+    LanguageManagerInterface $language_manager,
+    LoggerChannelInterface $logger
   ) {
     $this->fedora = $fedora;
     $this->mimeTypeGuesser = $mime_type_guesser;
     $this->languageManager = $language_manager;
+    $this->logger = $logger;
   }
 
   /**
@@ -77,17 +88,14 @@ class Fedora implements FlysystemPluginInterface, ContainerFactoryPluginInterfac
     // Construct guzzle client to middleware that adds JWT.
     $stack = HandlerStack::create();
     $stack->push(static::addJwt($container->get('jwt.authentication.jwt')));
-    $client = new Client([
-      'handler' => $stack,
-      'base_uri' => $configuration['root'],
-    ]);
-    $fedora = new FedoraApi($client);
+    $fedora = FedoraApi::createWithHandler($configuration['root'], $stack);
 
     // Return it.
     return new static(
       $fedora,
       $container->get('file.mime_type.guesser'),
-      $container->get('language_manager')
+      $container->get('language_manager'),
+      $container->get('logger.channel.fedora_flysystem')
     );
   }
 
@@ -116,7 +124,7 @@ class Fedora implements FlysystemPluginInterface, ContainerFactoryPluginInterfac
    * {@inheritdoc}
    */
   public function getAdapter() {
-    return new FedoraAdapter($this->fedora, $this->mimeTypeGuesser);
+    return new FedoraAdapter($this->fedora, $this->mimeTypeGuesser, $this->logger);
   }
 
   /**

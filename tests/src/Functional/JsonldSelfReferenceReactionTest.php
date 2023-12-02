@@ -2,6 +2,8 @@
 
 namespace Drupal\Tests\islandora\Functional;
 
+use function GuzzleHttp\json_decode;
+
 /**
  * Class MappingUriPredicateReactionTest.
  *
@@ -11,9 +13,16 @@ namespace Drupal\Tests\islandora\Functional;
 class JsonldSelfReferenceReactionTest extends IslandoraFunctionalTestBase {
 
   /**
+   * An RDF Mapping object.
+   *
+   * @var \Drupal\rdf\Entity\RdfMapping
+   */
+  protected $rdfMapping;
+
+  /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     $types = ['schema:Thing'];
@@ -61,7 +70,7 @@ class JsonldSelfReferenceReactionTest extends IslandoraFunctionalTestBase {
 
     $contents = $this->drupalGet($url . '?_format=jsonld');
     $this->assertSession()->statusCodeEquals(200);
-    $json = \GuzzleHttp\json_decode($contents, TRUE);
+    $json = json_decode($contents, TRUE);
     $this->assertArrayHasKey('http://purl.org/dc/terms/title',
       $json['@graph'][0], 'Missing dcterms:title key');
     $this->assertEquals(
@@ -103,7 +112,7 @@ class JsonldSelfReferenceReactionTest extends IslandoraFunctionalTestBase {
     drupal_flush_all_caches();
 
     $new_contents = $this->drupalGet($url . '?_format=jsonld');
-    $json = \GuzzleHttp\json_decode($new_contents, TRUE);
+    $json = json_decode($new_contents, TRUE);
     $this->assertEquals(
       'Test Node',
       $json['@graph'][0]['http://purl.org/dc/terms/title'][0]['@value'],
@@ -123,7 +132,7 @@ class JsonldSelfReferenceReactionTest extends IslandoraFunctionalTestBase {
     $this->assertSession()
       ->pageTextContains("The context $context_name has been saved");
     $new_contents = $this->drupalGet($url . '?_format=jsonld');
-    $json = \GuzzleHttp\json_decode($new_contents, TRUE);
+    $json = json_decode($new_contents, TRUE);
     $this->assertEquals(
       'Test Node',
       $json['@graph'][0]['http://purl.org/dc/terms/title'][0]['@value'],
@@ -161,7 +170,7 @@ class JsonldSelfReferenceReactionTest extends IslandoraFunctionalTestBase {
 
     $contents = $this->drupalGet($media_url . '?_format=jsonld');
     $this->assertSession()->statusCodeEquals(200);
-    $json = \GuzzleHttp\json_decode($contents, TRUE);
+    $json = json_decode($contents, TRUE);
     $this->assertEquals(
       "$media_url?_format=jsonld",
       $json['@graph'][0]['@id'],
@@ -186,7 +195,7 @@ class JsonldSelfReferenceReactionTest extends IslandoraFunctionalTestBase {
     drupal_flush_all_caches();
 
     $new_contents = $this->drupalGet($media_url . '?_format=jsonld');
-    $json = \GuzzleHttp\json_decode($new_contents, TRUE);
+    $json = json_decode($new_contents, TRUE);
     $this->assertEquals(
       "$media_url?_format=jsonld",
       $json['@graph'][0]['http://www.iana.org/assignments/relation/describedby'][0]['@id'],

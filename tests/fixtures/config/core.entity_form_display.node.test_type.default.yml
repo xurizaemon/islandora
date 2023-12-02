@@ -1,12 +1,13 @@
+uuid: 90a6909f-a2aa-44e8-8b61-4cd54ec6974f
 langcode: en
 status: true
 dependencies:
   config:
     - field.field.node.test_type.field_member_of
+    - field.field.node.test_type.field_model
     - node.type.test_type
   module:
     - path
-    - text
 id: node.test_type.default
 targetEntityType: node
 bundle: test_type
@@ -19,14 +20,25 @@ content:
     settings: {  }
     third_party_settings: {  }
   field_member_of:
+    type: entity_reference_autocomplete
     weight: 122
+    region: content
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  field_model:
     type: entity_reference_autocomplete
+    weight: 123
     region: content
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   langcode:
     type: language_select
     weight: 2
@@ -42,24 +54,24 @@ content:
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    settings:
-      display_label: true
     weight: 15
     region: content
+    settings:
+      display_label: true
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    settings:
-      display_label: true
     weight: 120
     region: content
+    settings:
+      display_label: true
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    settings:
-      display_label: true
     weight: 16
     region: content
+    settings:
+      display_label: true
     third_party_settings: {  }
   title:
     type: string_textfield
@@ -72,10 +84,11 @@ content:
   uid:
     type: entity_reference_autocomplete
     weight: 5
+    region: content
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
-    region: content
     third_party_settings: {  }
 hidden: {  }

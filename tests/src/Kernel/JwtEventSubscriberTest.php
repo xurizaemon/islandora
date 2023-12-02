@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\islandora\Kernel;
 
+use Prophecy\PhpUnit\ProphecyTrait;
 use Drupal\jwt\Authentication\Event\JwtAuthGenerateEvent;
 use Drupal\jwt\Authentication\Event\JwtAuthValidEvent;
 use Drupal\jwt\Authentication\Event\JwtAuthValidateEvent;
@@ -19,6 +20,7 @@ use Drupal\islandora\EventSubscriber\JwtEventSubscriber;
  */
 class JwtEventSubscriberTest extends IslandoraKernelTestBase {
 
+  use ProphecyTrait;
   use UserCreationTrait;
 
   /**
@@ -31,7 +33,7 @@ class JwtEventSubscriberTest extends IslandoraKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     $this->user = $this->createUser();

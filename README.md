@@ -1,6 +1,6 @@
-# ![Islandora](https://cloud.githubusercontent.com/assets/2371345/25624809/f95b0972-2f30-11e7-8992-a8f135402cdc.png) Islandora
+# Islandora
 
-[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.2-8892BF.svg?style=flat-square)](https://php.net/)
+[![Minimum PHP Version](https://img.shields.io/badge/php-%3E%3D%207.4-8892BF.svg?style=flat-square)](https://php.net/)
 [![Build Status](https://github.com/islandora/islandora/actions/workflows/build-2.x.yml/badge.svg)](https://github.com/Islandora/islandora/actions)
 [![Contribution Guidelines](http://img.shields.io/badge/CONTRIBUTING-Guidelines-blue.svg)](./CONTRIBUTING.md)
 [![LICENSE](https://img.shields.io/badge/license-GPLv2-blue.svg?style=flat-square)](./LICENSE)
@@ -40,7 +40,6 @@ Installing via composer will download all required libraries and modules.  Howev
 - [eva](http://drupal.org/project/eva)
 - [features](http://drupal.org/project/features)
 - [migrate_plus](http://drupal.org/project/migrate_plus)
-- [migrate_tools](http://drupal.org/project/migrate_tools)
 - [migrate_source_csv](http://drupal.org/project/migrate_source_csv)
 - [flysystem](http://drupal.org/project/flysystem)
 
@@ -48,6 +47,8 @@ It also requires the following PHP libraries:
 
 - [Crayfish Commons](https://packagist.org/packages/islandora/crayfish-commons)
 - [Stomp PHP](http://drupal.org/project/)
+
+If you are using a Drush version less than 10.4 you will also need to install and enable [migrate_tools](http://drupal.org/project/migrate_tools) separately.
 
 ## Installation
 
@@ -90,27 +91,27 @@ Having problems or solved a problem? Check out the Islandora google groups for a
 
 Current maintainers:
 
-* [Danny Lamb](https://github.com/dannylamb)
+* [Islandora Technical Advisory Group](https://github.com/Islandora/islandora-community/wiki/Technical-Advisory-Group-%28TAG%29)
 
 ## Sponsors
 
-* UPEI
-* discoverygarden inc.
-* LYRASIS
-* McMaster University
-* University of Limerick
-* York University
-* University of Manitoba
-* Simon Fraser University
-* PALS
-* American Philosophical Society
-* Common Media Inc.
+* [American Philosophical Society](https://www.amphilsoc.org/)
+* [Born-Digital, Inc.](https://www.born-digital.com/)
+* [discoverygarden inc.](https://www.discoverygarden.ca/)
+* [LYRASIS](https://www.lyrasis.org/)
+* [McMaster University](https://www.mcmaster.ca/)
+* [PALS](https://www.mnpals.org/)
+* [University of Limerick](https://www.ul.ie/)
+* [University of Manitoba](https://umanitoba.ca/)
+* [UPEI](https://www.upei.ca/)
+* [Simon Fraser University](https://www.sfu.ca/)
+* [York University](https://www.yorku.ca/)
 
 ## Development
 
-If you would like to contribute, please get involved by attending our weekly [Tech Call](https://github.com/Islandora/documentation/wiki). We love to hear from you!
+If you would like to contribute, please get involved by attending our weekly [Tech Call](https://github.com/Islandora/islandora-community/wiki/Weekly-Open-Tech-Call). We love to hear from you!
 
-If you would like to contribute code to the project, you need to be covered by an Islandora Foundation [Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_cla.pdf) or [Corporate Contributor License Agreement](http://islandora.ca/sites/default/files/islandora_ccla.pdf). Please see the [Contributors](http://islandora.ca/resources/contributors) pages on Islandora.ca for more information.
+If you would like to contribute code to the project, you need to be covered by an Islandora Foundation [Contributor License Agreement](https://github.com/Islandora/islandora-community/wiki/Onboarding-Checklist#contributor-license-agreements) or [Corporate Contributor License Agreement](https://github.com/Islandora/islandora-community/wiki/Onboarding-Checklist#contributor-license-agreements). Please see the [Contributor License Agreements](https://github.com/Islandora/islandora-community/wiki/Contributor-License-Agreements) page on the islandora-community wiki for more information.
 
 We recommend using the [islandora-playbook](https://github.com/Islandora-Devops/islandora-playbook) to get started.
 

@@ -2,19 +2,24 @@
 
 namespace Drupal\islandora_iiif\Plugin\views\style;
 
-use Drupal\views\Plugin\views\style\StylePluginBase;
+use Drupal\Core\Config\ImmutableConfig;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Field\FieldItemInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Url;
+use Drupal\views\Plugin\views\style\StylePluginBase;
 use Drupal\views\ResultRow;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\HttpFoundation\Request;
-use Drupal\Core\Config\ImmutableConfig;
-use Drupal\Core\File\FileSystemInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\ServerException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Provide serializer format for IIIF Manifest.
@@ -69,11 +74,25 @@ class IIIFManifest extends StylePluginBase {
   protected $iiifConfig;
 
   /**
+   * The Drupal Entity Type Manager service.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * The Drupal Filesystem.
    *
    * @var \Drupal\Core\File\FileSystem
    */
   protected $fileSystem;
+
+  /**
+   * The Guzzle HTTP Client.
+   *
+   * @var \GuzzleHttp\Client
+   */
+  protected $httpClient;
 
   /**
    * The messenger.
@@ -83,17 +102,26 @@ class IIIFManifest extends StylePluginBase {
   protected $messenger;
 
   /**
+   * Module Handler for running hooks.
+   *
+   * @var \Drupal\Core\Extention\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, FileSystemInterface $file_system, Client $http_client, MessengerInterface $messenger) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, SerializerInterface $serializer, Request $request, ImmutableConfig $iiif_config, EntityTypeManagerInterface $entity_type_manager, FileSystemInterface $file_system, Client $http_client, MessengerInterface $messenger, ModuleHandlerInterface $moduleHandler) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->serializer = $serializer;
     $this->request = $request;
     $this->iiifConfig = $iiif_config;
+    $this->entityTypeManager = $entity_type_manager;
     $this->fileSystem = $file_system;
     $this->httpClient = $http_client;
     $this->messenger = $messenger;
+    $this->moduleHandler = $moduleHandler;
   }
 
   /**
@@ -107,10 +135,22 @@ class IIIFManifest extends StylePluginBase {
       $container->get('serializer'),
       $container->get('request_stack')->getCurrentRequest(),
       $container->get('config.factory')->get('islandora_iiif.settings'),
+      $container->get('entity_type.manager'),
       $container->get('file_system'),
       $container->get('http_client'),
-      $container->get('messenger')
+      $container->get('messenger'),
+      $container->get('module_handler')
     );
+  }
+
+  /**
+   * Return the request property.
+   *
+   * @return \Symfony\Component\HttpFoundation\Request
+   *   The Symfony request object
+   */
+  public function getRequest() {
+    return $this->request;
   }
 
   /**
@@ -121,18 +161,21 @@ class IIIFManifest extends StylePluginBase {
     $iiif_address = $this->iiifConfig->get('iiif_server');
     if (!is_null($iiif_address) && !empty($iiif_address)) {
       // Get the current URL being requested.
-      $request_url = $this->request->getSchemeAndHttpHost() . $this->request->getRequestUri();
+      $request_host = $this->request->getSchemeAndHttpHost();
+      $request_url = $this->request->getRequestUri();
       // Strip off the last URI component to get the base ID of the URL.
       // @todo assumming the view is a path like /node/1/manifest.json
-      $url_components = explode('/', $request_url);
+      $url_components = explode('/', trim($request_url, '/'));
       array_pop($url_components);
-      $iiif_base_id = implode('/', $url_components);
+      $content_path = implode('/', $url_components);
+      $iiif_base_id = $request_host . '/' . $content_path;
+
       // @see https://iiif.io/api/presentation/2.1/#manifest
       $json += [
         '@type' => 'sc:Manifest',
         '@id' => $request_url,
         // If the View has a title, set the View title as the manifest label.
-        'label' => $this->view->getTitle() ?: 'IIIF Manifest',
+        'label' => $this->view->getTitle() ?: $this->getEntityTitle($content_path),
         '@context' => 'http://iiif.io/api/presentation/2/context.json',
         // @see https://iiif.io/api/presentation/2.1/#sequence
         'sequences' => [
@@ -156,6 +199,9 @@ class IIIFManifest extends StylePluginBase {
 
     $content_type = 'json';
 
+    // Give other modules a chance to alter the manifest.
+    $this->moduleHandler->alter('islandora_iiif_manifest', $json, $this);
+
     return $this->serializer->serialize($json, $content_type, ['views_style_plugin' => $this]);
   }
 
@@ -175,18 +221,28 @@ class IIIFManifest extends StylePluginBase {
    */
   protected function getTileSourceFromRow(ResultRow $row, $iiif_address, $iiif_base_id) {
     $canvases = [];
-    foreach ($this->options['iiif_tile_field'] as $iiif_tile_field) {
+    foreach (array_filter(array_values($this->options['iiif_tile_field'])) as $iiif_tile_field) {
       $viewsField = $this->view->field[$iiif_tile_field];
       $entity = $viewsField->getEntity($row);
 
       if (isset($entity->{$viewsField->definition['field_name']})) {
-
         /** @var \Drupal\Core\Field\FieldItemListInterface $images */
         $images = $entity->{$viewsField->definition['field_name']};
-        foreach ($images as $image) {
+        foreach ($images as $i => $image) {
+          if (!$image->entity->access('view')) {
+            // If the user does not have permission to view the file, skip it.
+            continue;
+          }
+
           // Create the IIIF URL for this file
           // Visiting $iiif_url will resolve to the info.json for the image.
-          $file_url = $image->entity->createFileUrl(FALSE);
+          if ($this->iiifConfig->get('use_relative_paths')) {
+            $file_url = ltrim($image->entity->createFileUrl(TRUE), '/');
+          }
+          else {
+            $file_url = $image->entity->createFileUrl(FALSE);
+          }
+
           $mime_type = $image->entity->getMimeType();
           $iiif_url = rtrim($iiif_address, '/') . '/' . urlencode($file_url);
 
@@ -194,37 +250,9 @@ class IIIFManifest extends StylePluginBase {
           $canvas_id = $iiif_base_id . '/canvas/' . $entity->id();
           $annotation_id = $iiif_base_id . '/annotation/' . $entity->id();
 
-          // Try to fetch the IIIF metadata for the image.
-          try {
-            $info_json = $this->httpClient->get($iiif_url)->getBody();
-            $resource = json_decode($info_json, TRUE);
-            $width = $resource['width'];
-            $height = $resource['height'];
-          }
-          catch (ClientException | ServerException | ConnectException $e) {
-            // If we couldn't get the info.json from IIIF
-            // try seeing if we can get it from Drupal.
-            if (empty($width) || empty($height)) {
-              // Get the image properties so we know the image width/height.
-              $properties = $image->getProperties();
-              $width = isset($properties['width']) ? $properties['width'] : 0;
-              $height = isset($properties['height']) ? $properties['height'] : 0;
+          [$width, $height] = $this->getCanvasDimensions($iiif_url, $image, $mime_type);
 
-              // If this is a TIFF AND we don't know the width/height
-              // see if we can get the image size via PHP's core function.
-              if ($mime_type === 'image/tiff' && !$width || !$height) {
-                $uri = $image->entity->getFileUri();
-                $path = $this->fileSystem->realpath($uri);
-                $image_size = getimagesize($path);
-                if ($image_size) {
-                  $width = $image_size[0];
-                  $height = $image_size[1];
-                }
-              }
-            }
-          }
-
-          $canvases[] = [
+          $tmp_canvas = [
             // @see https://iiif.io/api/presentation/2.1/#canvas
             '@id' => $canvas_id,
             '@type' => 'sc:Canvas',
@@ -253,11 +281,141 @@ class IIIFManifest extends StylePluginBase {
               ],
             ],
           ];
+
+          if ($ocr_url = $this->getOcrUrl($entity, $row, $i)) {
+            $tmp_canvas['seeAlso'] = [
+              '@id' => $ocr_url,
+              'format' => 'text/vnd.hocr+html',
+              'profile' => 'http://kba.cloud/hocr-spec',
+              'label' => 'hOCR embedded text',
+            ];
+          }
+
+          // Give other modules a chance to alter the canvas.
+          $alter_options = [
+            'options' => $this->options,
+            'views_plugin' => $this,
+          ];
+          $this->moduleHandler->alter('islandora_iiif_manifest_canvas', $tmp_canvas, $row, $alter_options);
+
+          $canvases[] = $tmp_canvas;
         }
       }
     }
 
     return $canvases;
+  }
+
+  /**
+   * Try to fetch the IIIF metadata for the image.
+   *
+   * @param string $iiif_url
+   *   Base URL of the canvas.
+   * @param \Drupal\Core\Field\FieldItemInterface $image
+   *   The image field.
+   * @param string $mime_type
+   *   The mime type of the image.
+   *
+   * @return [string]
+   *   The width and height of the image.
+   */
+  protected function getCanvasDimensions(string $iiif_url, FieldItemInterface $image, string $mime_type) {
+
+    if (isset($image->width) && is_numeric($image->width)
+    && isset($image->height) && is_numeric($image->height)) {
+      return [intval($image->width), intval($image->height)];
+    }
+
+    try {
+      $info_json = $this->httpClient->get($iiif_url)->getBody();
+      $resource = json_decode($info_json, TRUE);
+      $width = $resource['width'];
+      $height = $resource['height'];
+    }
+    catch (ClientException | ServerException | ConnectException $e) {
+      // If we couldn't get the info.json from IIIF
+      // try seeing if we can get it from Drupal.
+      if (empty($width) || empty($height)) {
+        // Get the image properties so we know the image width/height.
+        $properties = $image->getProperties();
+        $width = isset($properties['width']) ? $properties['width'] : 0;
+        $height = isset($properties['height']) ? $properties['height'] : 0;
+
+        // If this is a TIFF AND we don't know the width/height
+        // see if we can get the image size via PHP's core function.
+        if ($mime_type === 'image/tiff' && !$width || !$height) {
+          $uri = $image->entity->getFileUri();
+          $path = $this->fileSystem->realpath($uri);
+          $image_size = getimagesize($path);
+          if ($image_size) {
+            $width = $image_size[0];
+            $height = $image_size[1];
+          }
+        }
+      }
+    }
+    return [$width, $height];
+  }
+
+  /**
+   * Retrieves a URL text with positional data such as hOCR.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity at the current row.
+   * @param \Drupal\views\ResultRow $row
+   *   Result row.
+   * @param int $delta
+   *   The delta in case there are multiple canvases on one media.
+   *
+   * @return string|false
+   *   The absolute URL of the current row's structured text,
+   *   or FALSE if none.
+   */
+  protected function getOcrUrl(EntityInterface $entity, ResultRow $row, $delta) {
+    $ocr_url = FALSE;
+    $iiif_ocr_file_field = !empty($this->options['iiif_ocr_file_field']) ? array_filter(array_values($this->options['iiif_ocr_file_field'])) : [];
+    $ocrField = count($iiif_ocr_file_field) > 0 ? $this->view->field[$iiif_ocr_file_field[0]] : NULL;
+    if ($ocrField) {
+      $ocr_entity = $ocrField->getEntity($row);
+      $ocr_field_name = $ocrField->definition['field_name'];
+      if (!is_null($ocr_field_name)) {
+        $ocrs = $ocr_entity->{$ocr_field_name};
+        $ocr = isset($ocrs[$delta]) ? $ocrs[$delta] : FALSE;
+        if ($ocr) {
+          $ocr_url = $ocr->entity->createFileUrl(FALSE);
+        }
+      }
+    }
+
+    return $ocr_url;
+  }
+
+  /**
+   * Pull a title from the node or media passed to this view.
+   *
+   * @param string $content_path
+   *   The path of the content being requested.
+   *
+   * @return string
+   *   The entity's title.
+   */
+  public function getEntityTitle(string $content_path): string {
+    $entity_title = $this->t('IIIF Manifest');
+    try {
+      $params = Url::fromUserInput($content_path)->getRouteParameters();
+      if (isset($params['node'])) {
+        $node = $this->entityTypeManager->getStorage('node')->load($params['node']);
+        $entity_title = $node->getTitle();
+      }
+      elseif (isset($params['media'])) {
+        $media = $this->entityTypeManager->getStorage('media')->load($params['media']);
+        $entity_title = $media->getName();
+      }
+    }
+    catch (\InvalidArgumentException $e) {
+
+    }
+    return $entity_title;
   }
 
   /**
@@ -267,6 +425,7 @@ class IIIFManifest extends StylePluginBase {
     $options = parent::defineOptions();
 
     $options['iiif_tile_field'] = ['default' => ''];
+    $options['iiif_ocr_file_field'] = ['default' => ''];
 
     return $options;
   }
@@ -321,6 +480,15 @@ class IIIFManifest extends StylePluginBase {
       // we have more than one option to choose from
       // otherwise could lock up the form when setting up a View.
       '#required' => count($field_options) > 0,
+    ];
+
+    $form['iiif_ocr_file_field'] = [
+      '#title' => $this->t('Structured OCR data file field'),
+      '#type' => 'checkboxes',
+      '#default_value' => $this->options['iiif_ocr_file_field'],
+      '#description' => $this->t('The source of structured OCR text for each entity.'),
+      '#options' => $field_options,
+      '#required' => FALSE,
     ];
   }
 

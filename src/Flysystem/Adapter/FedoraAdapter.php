@@ -2,6 +2,8 @@
 
 namespace Drupal\islandora\Flysystem\Adapter;
 
+use GuzzleHttp\Psr7\Header;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Islandora\Chullo\IFedoraApi;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
@@ -9,7 +11,7 @@ use League\Flysystem\Adapter\Polyfill\StreamedCopyTrait;
 use League\Flysystem\Config;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\StreamWrapper;
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
 
 /**
  * Fedora adapter for Flysystem.
@@ -29,21 +31,35 @@ class FedoraAdapter implements AdapterInterface {
   /**
    * Mimetype guesser.
    *
-   * @var \Symfony\Component\HttpFoundation\File\Mimetype\MimeTypeGuesserInterface
+   * @var \Symfony\Component\Mime\MimeTypeGuesserInterface
    */
   protected $mimeTypeGuesser;
+
+  /**
+   * Logger.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
+   */
+  protected $logger;
 
   /**
    * Constructs a Fedora adapter for Flysystem.
    *
    * @param \Islandora\Chullo\IFedoraApi $fedora
    *   Fedora client.
-   * @param \Symfony\Component\HttpFoundation\File\Mimetype\MimeTypeGuesserInterface $mime_type_guesser
+   * @param \Symfony\Component\Mime\MimeTypeGuesserInterface $mime_type_guesser
    *   Mimetype guesser.
+   * @param \Drupal\Core\Logger\LoggerChannelInterface $logger
+   *   The fedora adapter logger channel.
    */
-  public function __construct(IFedoraApi $fedora, MimeTypeGuesserInterface $mime_type_guesser) {
+  public function __construct(
+    IFedoraApi $fedora,
+    MimeTypeGuesserInterface $mime_type_guesser,
+    LoggerChannelInterface $logger
+  ) {
     $this->fedora = $fedora;
     $this->mimeTypeGuesser = $mime_type_guesser;
+    $this->logger = $logger;
   }
 
   /**
@@ -143,14 +159,8 @@ class FedoraAdapter implements AdapterInterface {
     // NonRDFSource's are considered files.  Everything else is a
     // directory.
     $type = 'dir';
-    // phpcs:disable
-    if (class_exists(\GuzzleHttp\Psr7\Header::class)) {
-      $links = \GuzzleHttp\Psr7\Header::parse($response->getHeader('Link'));
-    }
-    else {
-      $links = \GuzzleHttp\Psr7\parse_header($response->getHeader('Link'));
-    }
-    // phpcs:enable
+    $links = Header::parse($response->getHeader('Link'));
+
     foreach ($links as $link) {
       if ($link['rel'] == 'type' && $link[0] == '<http://www.w3.org/ns/ldp#NonRDFSource>') {
         $type = 'file';
@@ -259,7 +269,7 @@ class FedoraAdapter implements AdapterInterface {
    */
   public function write($path, $contents, Config $config) {
     $headers = [
-      'Content-Type' => $this->mimeTypeGuesser->guess($path),
+      'Content-Type' => $this->mimeTypeGuesser->guessMimeType($path),
     ];
     if ($this->has($path)) {
       $fedora_url = $path;
@@ -274,17 +284,17 @@ class FedoraAdapter implements AdapterInterface {
           $headers
         );
         if (isset($response) && $response->getStatusCode() == 201) {
-          \Drupal::logger('fedora_flysystem')->info('Created a version in Fedora for ' . $fedora_url);
+          $this->logger->info('Created a version in Fedora for ' . $fedora_url);
         }
         else {
-          \Drupal::logger('fedora_flysystem')->error(
+          $this->logger->error(
             "Client error: `Failed to create a Fedora version of $fedora_url`. Response is " . print_r($response, TRUE)
           );
 
         }
       }
       catch (\Exception $e) {
-        \Drupal::logger('fedora_flysystem')->error('Caught exception when creating version: ' . $e->getMessage() . "\n");
+        $this->logger->error('Caught exception when creating version: ' . $e->getMessage() . "\n");
       }
     }
 
@@ -386,14 +396,7 @@ class FedoraAdapter implements AdapterInterface {
     $return = NULL;
     if ($response->getStatusCode() == 410) {
       $return = FALSE;
-      // phpcs:disable
-      if (class_exists(\GuzzleHttp\Psr7\Header::class)) {
-        $link_headers = \GuzzleHttp\Psr7\Header::parse($response->getHeader('Link'));
-      }
-      else {
-        $link_headers = \GuzzleHttp\Psr7\parse_header($response->getHeader('Link'));
-      }
-      // phpcs:enable
+      $link_headers = Header::parse($response->getHeader('Link'));
       if ($link_headers) {
         $tombstones = array_filter($link_headers, function ($o) {
           return (isset($o['rel']) && $o['rel'] == 'hasTombstone');

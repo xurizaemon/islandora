@@ -7,6 +7,7 @@ use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Entity\Controller\EntityController;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Url;
 use Drupal\islandora\IslandoraUtils;
 use Drupal\node\NodeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -28,7 +29,7 @@ class ManageMembersController extends EntityController {
    *
    * @var \Drupal\Core\Entity\EntityFieldManagerInterface
    */
-  protected $entityFieldManger;
+  protected $entityFieldManager;
 
   /**
    * The renderer.
@@ -88,7 +89,8 @@ class ManageMembersController extends EntityController {
    */
   public function addToNodePage(NodeInterface $node) {
     $field = IslandoraUtils::MEMBER_OF_FIELD;
-    return $this->generateTypeList(
+
+    $add_node_list = $this->generateTypeList(
       'node',
       'node_type',
       'node.add',
@@ -96,6 +98,21 @@ class ManageMembersController extends EntityController {
       $field,
       ['query' => ["edit[$field][widget][0][target_id]" => $node->id()]]
     );
+
+    $manage_link = Url::fromRoute('entity.node_type.collection')->toRenderArray();
+    $manage_link['#title'] = $this->t('Manage content types');
+    $manage_link['#type'] = 'link';
+    $manage_link['#prefix'] = ' ';
+    $manage_link['#suffix'] = '.';
+
+    return [
+      '#type' => 'markup',
+      '#markup' => $this->t("The following content types can be added because they have the <code>@field</code> field.", [
+        '@field' => $field,
+      ]),
+      'manage_link' => $manage_link,
+      'add_node' => $add_node_list,
+    ];
   }
 
   /**

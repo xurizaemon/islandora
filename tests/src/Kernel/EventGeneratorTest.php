@@ -41,7 +41,7 @@ class EventGeneratorTest extends IslandoraKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Create a test user.
@@ -49,7 +49,7 @@ class EventGeneratorTest extends IslandoraKernelTestBase {
 
     $test_type = NodeType::create([
       'type' => 'test_type',
-      'label' => 'Test Type',
+      'name' => 'Test Type',
     ]);
     $test_type->save();
 
@@ -115,7 +115,6 @@ class EventGeneratorTest extends IslandoraKernelTestBase {
       $this->user,
       ['event' => 'delete', 'queue' => 'islandora-indexing-fcrepo-delete']
     );
-    $msg = json_decode($json, TRUE);
     $msg = json_decode($json, TRUE);
 
     $this->assertBasicStructure($msg);

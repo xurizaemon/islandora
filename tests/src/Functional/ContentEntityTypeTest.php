@@ -52,7 +52,8 @@ class ContentEntityTypeTest extends IslandoraFunctionalTestBase {
       'name[0][value]' => 'Test Media',
       'files[field_media_file_0]' => __DIR__ . '/../../fixtures/test_file.txt',
     ];
-    $this->drupalPostForm('media/add/' . $this->testMediaType->id(), $values, $this->t('Save'));
+    $this->drupalGet('media/add/' . $this->testMediaType->id());
+    $this->submitForm($values, $this->t('Save'));
     $this->assertSession()->pageTextNotContains("Hello World!");
   }
 

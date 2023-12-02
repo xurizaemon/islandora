@@ -20,7 +20,7 @@ class BreadcrumbsTest extends IslandoraFunctionalTestBase {
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'islandora_breadcrumbs',
   ];
 
@@ -56,7 +56,7 @@ class BreadcrumbsTest extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Create some nodes.

@@ -2,6 +2,8 @@
 
 namespace Drupal\Tests\islandora\Functional;
 
+use function GuzzleHttp\json_decode;
+
 /**
  * Tests Jsonld Alter Reaction.
  *
@@ -20,17 +22,45 @@ class JsonldTypeAlterReactionTest extends JsonldSelfReferenceReactionTest {
       'administer node fields',
     ]);
     $this->drupalLogin($account);
+    $this->drupalGet('admin/structure/types/manage/test_type/fields/add-field');
 
     // Add the typed predicate we will select in the reaction config.
     // Taken from FieldUiTestTrait->fieldUIAddNewField.
-    $this->drupalPostForm('admin/structure/types/manage/test_type/fields/add-field', [
-      'new_storage_type' => 'string',
-      'label' => 'Typed Predicate',
-      'field_name' => 'type_predicate',
-    ], $this->t('Save and continue'));
-    $this->drupalPostForm(NULL, [], $this->t('Save field settings'));
-    $this->drupalPostForm(NULL, [], $this->t('Save settings'));
-    $this->assertRaw('field_type_predicate', 'Redirected to "Manage fields" page.');
+    if (version_compare(\Drupal::VERSION, '10.2.x-dev', 'lt')) {
+      $this->submitForm([
+        'new_storage_type' => 'string',
+        'label' => 'Typed Predicate',
+        'field_name' => 'type_predicate',
+      ], 'Save and continue');
+      $this->submitForm([], $this->t('Save field settings'));
+    }
+    else {
+      $this->getSession()->getPage()->selectFieldOption('new_storage_type', 'plain_text');
+      // First need to submit the form with the elements displayed
+      // on initial page load. The form is using AJAX to send a second element
+      // after we selected the radio button above
+      // we can instead get the second element by submitting the form
+      // and having it throw an error since the required field is missing.
+      // @todo refactor this as a functional javascript test.
+      $this->submitForm([
+        'new_storage_type' => 'plain_text',
+        'label' => 'Typed Predicate',
+        'field_name' => 'type_predicate',
+      ], $this->t('Continue'));
+
+      // Now we can proceed, selecting the plain text (i.e. string)
+      // for the second element now that the element is displayed after
+      // the initial form submission.
+      $this->getSession()->getPage()->selectFieldOption('group_field_options_wrapper', 'string');
+      $this->submitForm([
+        'new_storage_type' => 'plain_text',
+        'label' => 'Typed Predicate',
+        'field_name' => 'type_predicate',
+        'group_field_options_wrapper' => 'string',
+      ], $this->t('Continue'));
+    }
+    $this->submitForm([], $this->t('Save settings'));
+    $this->assertSession()->responseContains('field_type_predicate');
 
     // Add the test node.
     $this->postNodeAddForm('test_type', [
@@ -46,7 +76,7 @@ class JsonldTypeAlterReactionTest extends JsonldSelfReferenceReactionTest {
 
     $contents = $this->drupalGet($url . '?_format=jsonld');
     $this->assertSession()->statusCodeEquals(200);
-    $json = \GuzzleHttp\json_decode($contents, TRUE);
+    $json = json_decode($contents, TRUE);
     $this->assertArrayHasKey('@type',
       $json['@graph'][0], 'Missing @type');
     $this->assertEquals(
@@ -81,7 +111,7 @@ class JsonldTypeAlterReactionTest extends JsonldSelfReferenceReactionTest {
 
     // Check for the new @type from the field_type_predicate value.
     $new_contents = $this->drupalGet($url . '?_format=jsonld');
-    $json = \GuzzleHttp\json_decode($new_contents, TRUE);
+    $json = json_decode($new_contents, TRUE);
     $this->assertTrue(
       in_array('http://schema.org/Organization', $json['@graph'][0]['@type']),
       'Missing altered @type value of http://schema.org/Organization'

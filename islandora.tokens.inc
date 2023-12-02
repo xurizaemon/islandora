@@ -19,6 +19,18 @@ function islandora_token_info() {
     'name' => t('Islandora Tokens'),
     'description' => t('Tokens for Islandora objects.'),
   ];
+  $node['media-original-file:filename'] = [
+    'name' => t('Media: Original File filename without extension.'),
+    'description' => t('File name without extension of original uploaded file associated with Islandora Object via Media.'),
+  ];
+  $node['media-original-file:basename'] = [
+    'name' => t('Media: Original File filename with extension.'),
+    'description' => t('File name with extension of original uploaded file associated with Islandora Object via Media.'),
+  ];
+  $node['media-original-file:extension'] = [
+    'name' => t('Media: Original File extension.'),
+    'description' => t('File extension of original uploaded file associated with Islandora Object via Media.'),
+  ];
   $node['media-thumbnail-image:url'] = [
     'name' => t('Media: Thumbnail Image URL.'),
     'description' => t('URL of Thumbnail Image associated with Islandora Object via Media.'),
@@ -70,6 +82,24 @@ function islandora_tokens($type, $tokens, array $data, array $options, Bubbleabl
     $islandoraUtils = \Drupal::service('islandora.utils');
     foreach ($tokens as $name => $original) {
       switch ($name) {
+        case 'media-original-file:basename':
+        case 'media-original-file:filename':
+        case 'media-original-file:extension':
+          $term = $islandoraUtils->getTermForUri('http://pcdm.org/use#OriginalFile');
+          $media = $islandoraUtils->getMediaWithTerm($data['node'], $term);
+          // Is there media?
+          if ($media) {
+            $file = \Drupal::service('islandora.media_source_service')->getSourceFile($media);
+            if (!empty($file)) {
+              $path_info = pathinfo($file->createFileUrl());
+              $key = explode(':', $name)[1];
+              if (array_key_exists($key, $path_info)) {
+                $replacements[$original] = $path_info[$key];
+              }
+            }
+          }
+          break;
+
         case 'media-thumbnail-image:url':
         case 'media_thumbnail_image:url':
           $term = $islandoraUtils->getTermForUri('http://pcdm.org/use#ThumbnailImage');
@@ -79,7 +109,7 @@ function islandora_tokens($type, $tokens, array $data, array $options, Bubbleabl
           if ($media) {
             $file = \Drupal::service('islandora.media_source_service')->getSourceFile($media);
             if (!empty($file)) {
-              $url = $file->url();
+              $url = $file->createFileUrl();
               $replacements[$original] = $url;
             }
           }
@@ -104,7 +134,7 @@ function islandora_tokens($type, $tokens, array $data, array $options, Bubbleabl
           break;
 
         case 'pdf_url':
-          $replacements[$original] = ' ' . islandora_url_to_service_file_media_by_mimetype($data['node'], 'application/pdf');
+          $replacements[$original] = islandora_url_to_service_file_media_by_mimetype($data['node'], 'application/pdf');
           break;
       }
     }
@@ -158,4 +188,5 @@ function islandora_url_to_service_file_media_by_mimetype($node, $mime_type) {
       }
     }
   }
+  return '';
 }

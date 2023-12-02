@@ -22,9 +22,13 @@ class GenerateOCRDerivative extends AbstractGenerateDerivative {
   public function defaultConfiguration() {
     $config = parent::defaultConfiguration();
     $config['path'] = '[date:custom:Y]-[date:custom:m]/[node:nid]-[term:name].txt';
-    $config['mimetype'] = 'application/xml';
+    $config['event'] = 'Generate Derivative';
+    $config['source_term_uri'] = 'http://pcdm.org/use#OriginalFile';
+    $config['derivative_term_uri'] = 'http://pcdm.org/use#ExtractedText';
+    $config['mimetype'] = 'text/plain';
     $config['queue'] = 'islandora-connector-ocr';
-    $config['destination_media_type'] = 'file';
+    $config['destination_media_type'] = 'extracted_text';
+    $config['scheme'] = 'fedora';
     return $config;
   }
 
@@ -33,11 +37,9 @@ class GenerateOCRDerivative extends AbstractGenerateDerivative {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    $form['mimetype']['#description'] = $this->t('Mimetype to convert to (e.g. application/xml, etc...)');
-    $form['mimetype']['#value'] = 'text/plain';
-    $form['mimetype']['#type'] = 'textfield';
 
-    unset($form['args']);
+    $form['args']['#description'] = $this->t("Arguments to send to Tesseract. To generate hOCR, use:<br /><code>-c tessedit_create_hocr=1 -c hocr_font_info=0</code>");
+
     return $form;
   }
 

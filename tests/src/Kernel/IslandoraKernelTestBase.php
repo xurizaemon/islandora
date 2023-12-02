@@ -12,7 +12,7 @@ abstract class IslandoraKernelTestBase extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'system',
     'user',
     'field',
@@ -43,7 +43,7 @@ abstract class IslandoraKernelTestBase extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Bootstrap minimal Drupal environment to run the tests.

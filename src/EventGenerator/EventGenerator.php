@@ -147,8 +147,19 @@ class EventGenerator implements EventGeneratorInterface {
       }
     }
 
-    unset($data["event"]);
-    unset($data["queue"]);
+    $allowed_keys = [
+      "file_upload_uri",
+      "fedora_uri",
+      "source_uri",
+      "destination_uri",
+      "args",
+      "mimetype",
+      "source_field",
+    ];
+    $keys_to_unset = array_diff(array_keys($data), $allowed_keys);
+    foreach ($keys_to_unset as $key) {
+      unset($data[$key]);
+    }
 
     if (!empty($data)) {
       $event["attachment"] = [
@@ -192,6 +203,7 @@ class EventGenerator implements EventGeneratorInterface {
   protected function getRevisionIds(Media $media, EntityStorageInterface $media_storage) {
     $result = $media_storage->getQuery()
       ->allRevisions()
+      ->accessCheck(TRUE)
       ->condition($media->getEntityType()->getKey('id'), $media->id())
       ->sort($media->getEntityType()->getKey('revision'), 'DESC')
       ->execute();

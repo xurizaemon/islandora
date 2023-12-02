@@ -26,6 +26,9 @@ use Drupal\media\MediaInterface;
 use Drupal\file\FileInterface;
 use Drupal\taxonomy\TermInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\serialization\Normalizer\CacheableNormalizerInterface;
+use Drupal\Core\Entity\EntityForm;
+use Drupal\file\Entity\File;
 
 /**
  * Implements hook_help().
@@ -180,7 +183,8 @@ function islandora_file_insert(FileInterface $file) {
  */
 function islandora_file_update(FileInterface $file) {
   // Exit early if unchanged.
-  if ($file->filehash != NULL && $file->original->filehash != NULL && $file->filehash['sha1'] == $file->original->filehash['sha1']) {
+  if ($file->hasField('sha1') && $file->original->hasField('sha1')
+    && $file->sha1->getString() == $file->original->sha1->getString()) {
     return;
   }
 
@@ -251,8 +255,8 @@ function islandora_jsonld_alter_normalized_array(EntityInterface $entity, array 
     $reaction->execute($entity, $normalized, $context);
     foreach ($context_manager->getActiveContexts() as $context_config) {
       try {
-        if ($context_config->getReaction($reaction->getPluginId())) {
-          $context['cacheability']->addCacheTags($context_config->getCacheTags());
+        if ($context_config->getReaction($reaction->getPluginId()) && isset($context[CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY])) {
+          $context[CacheableNormalizerInterface::SERIALIZATION_CONTEXT_CACHEABILITY]->addCacheableDependency($context_config);
         };
       }
       catch (PluginNotFoundException $e) {
@@ -328,19 +332,227 @@ function islandora_form_alter(&$form, FormStateInterface $form_state, $form_id) 
       if ($node) {
         $form['name']['widget'][0]['value']['#default_value'] = $node->getTitle();
       }
+      $form['actions']['submit']['#submit'][] = 'islandora_media_custom_form_submit';
+    }
+  }
+
+  $form_object = $form_state->getFormObject();
+  $utils = \Drupal::service('islandora.utils');
+  $config = \Drupal::config('islandora.settings')->get('delete_media_and_files');
+
+  if ($config == 1 && $form_object instanceof EntityForm) {
+    $entity = $form_object->getEntity();
+
+    if ($entity->getEntityTypeId() == "node" && $utils->isIslandoraType($entity->getEntityTypeId(), $entity->bundle()) && strpos($form['#form_id'], 'delete_form') !== FALSE) {
+      $medias = $utils->getMedia($form_state->getFormObject()->getEntity());
+      if (count($medias) != 0) {
+        $form['delete_associated_content'] = [
+          '#type' => 'checkbox',
+          '#title' => t('Delete all associated medias and nodes'),
+        ];
+
+        $media_list = [];
+
+        foreach ($medias as $media) {
+          $media_list[] = $media->getName();
+        }
+
+        $form['container'] = [
+          '#type' => 'container',
+          '#states' => [
+            'visible' => [
+              ':input[name="delete_associated_content"]' => ['checked' => TRUE],
+            ],
+          ],
+        ];
+
+        $form['container']['media_items'] = [
+          '#theme' => 'item_list',
+          '#type' => 'ul',
+          '#items' => $media_list,
+          '#attributes' => ['class' => ['islandora-media-items']],
+          '#wrapper_attributes' => ['class' => ['container']],
+          '#attached' => [
+            'library' => [
+              'islandora/islandora',
+            ],
+          ],
+        ];
+
+        $form['actions']['submit']['#submit'][] = 'islandora_object_delete_form_submit';
+        return $form;
+      }
+    }
+  }
+
+  return $form;
+}
+
+/**
+ * Redirect submit handler for media save.
+ */
+function islandora_media_custom_form_submit(&$form, FormStateInterface $form_state) {
+  // Check configuration to see whether a redirect is desired.
+  $redirect = \Drupal::config('islandora.settings')->get('redirect_after_media_save');
+  if ($redirect) {
+    $params = \Drupal::request()->query->all();
+    if (!empty($params)) {
+      $target_id = $params['edit']['field_media_of']['widget'][0]['target_id'];
+      $url = Url::fromRoute('view.media_of.page_1', ['node' => $target_id]);
+      $form_state->setRedirectUrl($url);
     }
   }
 }
 
 /**
- * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ * Implements a submit handler for the delete form.
  */
-function islandora_field_widget_image_image_form_alter(&$element, $form_state, $context) {
+function islandora_object_delete_form_submit($form, FormStateInterface $form_state) {
+
+  $result = $form_state->getValues('delete_associated_content');
+  $utils = \Drupal::service('islandora.utils');
+
+  if ($result['delete_associated_content'] == 1) {
+
+    $node = $form_state->getFormObject()->getEntity();
+    $medias = $utils->getMedia($node);
+    $media_list = [];
+
+    $entity_field_manager = \Drupal::service('entity_field.manager');
+    $current_user = \Drupal::currentUser();
+    $logger = \Drupal::logger('logger.channel.islandora');
+    $messenger = \Drupal::messenger();
+
+    $delete_media = [];
+    $media_translations = [];
+    $media_files = [];
+    $entity_protected_medias = [];
+    $inaccessible_entities = [];
+
+    foreach ($medias as $id => $media) {
+      $lang = $media->language()->getId();
+      $selected_langcodes[$lang] = $lang;
+
+      if (!$media->access('delete', $current_user)) {
+        $inaccessible_entities[] = $media;
+        continue;
+      }
+      // Check for files.
+      $fields = $entity_field_manager->getFieldDefinitions('media', $media->bundle());
+      foreach ($fields as $field) {
+        $type = $field->getType();
+        if ($type == 'file' || $type == 'image') {
+          $target_id = $media->get($field->getName())->target_id;
+          $file = File::load($target_id);
+          if ($file) {
+            if (!$file->access('delete', $current_user)) {
+              $inaccessible_entities[] = $file;
+              continue;
+            }
+            $media_files[$id][$file->id()] = $file;
+          }
+        }
+      }
+
+      foreach ($selected_langcodes as $langcode) {
+        // We're only working with media, which are translatable.
+        $entity = $media->getTranslation($langcode);
+        if ($entity->isDefaultTranslation()) {
+          $delete_media[$id] = $entity;
+          unset($media_translations[$id]);
+        }
+        elseif (!isset($delete_media[$id])) {
+          $media_translations[$id][] = $entity;
+        }
+      }
+    }
+
+    if ($delete_media) {
+      foreach ($delete_media as $id => $media) {
+        try {
+          $media->delete();
+          $media_list[] = $id;
+          $logger->notice('The media %label has been deleted.', [
+            '%label' => $media->label(),
+          ]);
+        }
+        catch (Exception $e) {
+          $entity_protected_medias[] = $id;
+        }
+      }
+    }
+
+    $delete_files = array_filter($media_files, function ($media) use ($entity_protected_medias) {
+      return !in_array($media, $entity_protected_medias);
+    }, ARRAY_FILTER_USE_KEY);
+
+    if ($delete_files) {
+      foreach ($delete_files as $files_array) {
+        foreach ($files_array as $file) {
+          $file->delete();
+          $logger->notice('The file %label has been deleted.', [
+            '%label' => $file->label(),
+          ]);
+        }
+      }
+    }
+
+    $delete_media_translations = array_filter($media_translations, function ($media) use ($entity_protected_medias) {
+      return !in_array($media, $entity_protected_medias);
+    }, ARRAY_FILTER_USE_KEY);
+
+    if ($delete_media_translations) {
+      foreach ($delete_media_translations as $id => $translations) {
+        $media = $medias[$id];
+        foreach ($translations as $translation) {
+          $media->removeTranslation($translation->language()->getId());
+        }
+        $media->save();
+        foreach ($translations as $translation) {
+          $logger->notice('The media %label @language translation has been deleted', [
+            '%label' => $media->label(),
+            '@language' => $translation->language()->getName(),
+          ]);
+        }
+      }
+    }
+
+    if ($inaccessible_entities) {
+      $messenger->addWarning("@count items have not been deleted because you do not have the necessary permissions.", [
+        '@count' => count($inaccessible_entities),
+      ]);
+    }
+
+    $build = [
+      'heading' => [
+        '#type' => 'html_tag',
+        '#tag' => 'div',
+        '#value' => t("The repository item @node and @media", [
+          '@node' => $node->getTitle(),
+          '@media' => \Drupal::translation()->formatPlural(
+            count($media_list), 'the media with the id @media has been deleted.',
+            'the medias with the ids @media have been deleted.',
+            ['@media' => implode(", ", $media_list)],
+          ),
+        ]),
+      ],
+    ];
+
+    $message = \Drupal::service('renderer')->renderPlain($build);
+    $messenger->deleteByType('status');
+    $messenger->addStatus($message);
+  }
+}
+
+/**
+ * Implements hook_field_widget_single_element_WIDGET_TYPE_form_alter().
+ */
+function islandora_field_widget_single_element_image_image_form_alter(&$element, $form_state, $context) {
   $element['#process'][] = 'islandora_add_default_image_alt_text';
 }
 
 /**
- * Callback for hook_field_widget_WIDGET_TYPE_form_alter().
+ * Callback for hook_field_widget_single_element_WIDGET_TYPE_form_alter().
  */
 function islandora_add_default_image_alt_text($element, $form_state, $form) {
   if ($element['alt']['#access']) {
@@ -421,8 +633,8 @@ function islandora_entity_extra_field_info() {
 
   if (!empty($pseudo_bundles)) {
     foreach ($pseudo_bundles as $key) {
-      list($bundle, $content_entity) = explode(":", $key);
-      $extra_field[$content_entity][$bundle]['display']['field_gemini_uri'] = [
+      [$bundle, $content_entity] = explode(":", $key);
+      $extra_field[$content_entity][$bundle]['display'][IslandoraSettingsForm::GEMINI_PSEUDO_FIELD] = [
         'label' => t('Fedora URI'),
         'description' => t('The URI to the persistent'),
         'weight' => 100,
@@ -450,6 +662,17 @@ function islandora_entity_view(array &$build, EntityInterface $entity, EntityVie
         // Check if the source file is in Fedora or not.
         $media_source_service = \Drupal::service('islandora.media_source_service');
         $source_file = $media_source_service->getSourceFile($entity);
+        if (!$source_file) {
+          \Drupal::logger('islandora')->error(
+            \Drupal::service('string_translation')->translate(
+              "Can't get source file for @label (@id)", [
+                '@label' => $entity->label(),
+                "@id" => $entity->id(),
+              ]
+            )
+          );
+          return;
+        }
         $uri = $source_file->getFileUri();
         $scheme = \Drupal::service('stream_wrapper_manager')->getScheme($uri);
         $flysystem_config = Settings::get('flysystem');
@@ -503,7 +726,7 @@ function islandora_preprocess_views_view_table(&$variables) {
 
   // Check for a weight selector field.
   foreach ($variables['view']->field as $field_key => $field) {
-    if ($field->options['plugin_id'] == 'integer_weight_selector') {
+    if ($field->getPluginId() == 'integer_weight_selector') {
 
       // Check if the weight selector is on the first column.
       $is_first_column = array_search($field_key, array_keys($variables['view']->field)) > 0 ? FALSE : TRUE;

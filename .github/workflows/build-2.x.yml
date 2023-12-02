@@ -19,17 +19,23 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.allowed_failure }}
     strategy:
+      fail-fast: false
       matrix:
-        php-versions: ["7.3", "7.4"]
+        php-versions: ["8.1", "8.2"]
+        # test-suite functional-javascript will appear to pass but will skip tests; missing chromedriver.
         test-suite: ["kernel", "functional", "functional-javascript"]
-        drupal-version: ["8.9.11", "9.1.5"]
+        drupal-version: ["10.0.x", "10.1.x", "10.2.x-dev"]
+        mysql: ["8.0"]
+        allowed_failure: [false]
 
-    name: PHP ${{ matrix.php-versions }} drupal ${{ matrix.drupal-version }} test-suite ${{ matrix.test-suite }}
+
+    name: PHP ${{ matrix.php-versions }} | drupal ${{ matrix.drupal-version }} | mysql ${{ matrix.mysql }} | test-suite ${{ matrix.test-suite }}
 
     services:
       mysql:
-        image: mysql:5.7
+        image: mysql:${{ matrix.mysql }}
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
           MYSQL_DATABASE: drupal
@@ -44,14 +50,15 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: build_dir
 
       - name: Checkout islandora_ci
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: islandora/islandora_ci
           ref: github-actions
@@ -66,6 +73,7 @@ jobs:
       - name: Setup Mysql client
         run: |
           sudo apt-get update
+          sudo apt-get remove -y mysql-client mysql-common
           sudo apt-get install -y mysql-client
 
       - name: Set environment variables
@@ -76,7 +84,7 @@ jobs:
           echo "PHPUNIT_FILE=$GITHUB_WORKSPACE/build_dir/phpunit.xml" >> $GITHUB_ENV
 
       - name: Cache Composer dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: /tmp/composer-cache
           key: ${{ runner.os }}-${{ hashFiles('**/composer.lock') }}
@@ -113,4 +121,3 @@ jobs:
         run: |
           cd $DRUPAL_DIR/web/core
           $DRUPAL_DIR/vendor/bin/phpunit --verbose --testsuite "${{ matrix.test-suite }}"
-

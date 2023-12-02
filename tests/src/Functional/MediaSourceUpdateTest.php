@@ -35,7 +35,7 @@ class MediaSourceUpdateTest extends IslandoraFunctionalTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Make a user with appropriate permissions.
@@ -52,8 +52,8 @@ class MediaSourceUpdateTest extends IslandoraFunctionalTestBase {
       'uri' => "public://test_file.txt",
       'filename' => "test_file.txt",
       'filemime' => "text/plain",
-      'status' => FILE_STATUS_PERMANENT,
     ]);
+    $this->file->setPermanent();
     $this->file->save();
 
     // Get the source field for the media.

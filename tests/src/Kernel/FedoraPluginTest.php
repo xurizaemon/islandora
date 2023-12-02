@@ -2,11 +2,13 @@
 
 namespace Drupal\Tests\islandora\Kernel;
 
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\islandora\Flysystem\Fedora;
-use League\Flysystem\AdapterInterface;
 use Islandora\Chullo\IFedoraApi;
+use League\Flysystem\AdapterInterface;
+use Prophecy\PhpUnit\ProphecyTrait;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
 
 /**
  * Tests the Fedora plugin for Flysystem.
@@ -15,6 +17,8 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
  * @coversDefaultClass \Drupal\islandora\Flysystem\Fedora
  */
 class FedoraPluginTest extends IslandoraKernelTestBase {
+
+  use ProphecyTrait;
 
   /**
    * Mocks up a plugin.
@@ -32,8 +36,9 @@ class FedoraPluginTest extends IslandoraKernelTestBase {
     $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)->reveal();
 
     $language_manager = $this->container->get('language_manager');
+    $logger = $this->prophesize(LoggerChannelInterface::class)->reveal();
 
-    return new Fedora($api, $mime_guesser, $language_manager);
+    return new Fedora($api, $mime_guesser, $language_manager, $logger);
   }
 
   /**

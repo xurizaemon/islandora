@@ -2,12 +2,15 @@
 
 namespace Drupal\Tests\islandora\Kernel;
 
+use Prophecy\PhpUnit\ProphecyTrait;
+use GuzzleHttp\Psr7\Utils;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\islandora\Flysystem\Adapter\FedoraAdapter;
 use GuzzleHttp\Psr7\Response;
 use Islandora\Chullo\IFedoraApi;
 use League\Flysystem\Config;
 use Prophecy\Argument;
-use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
+use Symfony\Component\Mime\MimeTypeGuesserInterface;
 
 /**
  * Tests the Fedora adapter for Flysystem.
@@ -16,6 +19,31 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface;
  * @coversDefaultClass \Drupal\islandora\Flysystem\Adapter\FedoraAdapter
  */
 class FedoraAdapterTest extends IslandoraKernelTestBase {
+
+  use ProphecyTrait;
+  /**
+   * A mimetype guesser prophecy.
+   *
+   * @var \Prophecy\Prophecy\ObjectProphecy
+   */
+  private $mimeGuesser;
+
+  /**
+   * A logger prophecy.
+   *
+   * @var \Prophecy\Prophecy\ObjectProphecy
+   */
+  private $logger;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp(): void {
+    parent::setUp();
+    $this->mimeGuesser = $this->prophesize(MimeTypeGuesserInterface::class)
+      ->reveal();
+    $this->logger = $this->prophesize(LoggerChannelInterface::class)->reveal();
+  }
 
   /**
    * Shared functionality for an adapter.
@@ -32,13 +60,8 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
       ]);
     $prophecy->getHeader('Content-Type')->willReturn(['text/plain']);
     $prophecy->getHeader('Content-Length')->willReturn([strlen("DERP")]);
-    // phpcs:disable
-    if (class_exists(\GuzzleHttp\Psr7\Utils::class)) {
-      $prophecy->getBody()->willReturn(\GuzzleHttp\Psr7\Utils::streamFor("DERP"));
-    } else {
-      $prophecy->getBody()->willReturn(\GuzzleHttp\Psr7\stream_for("DERP"));
-    }
-    // phpcs:enable
+    $prophecy->getBody()->willReturn(Utils::streamFor("DERP"));
+
     return $prophecy;
   }
 
@@ -55,10 +78,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $prophecy->getResource('', ['Connection' => 'close'])->willReturn($response);
     $api = $prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -73,10 +93,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $prophecy->getResource('', ['Connection' => 'close'])->willReturn($response);
     $api = $prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -98,10 +115,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $prophecy->getResourceHeaders('', ['Connection' => 'close'])->willReturn($response);
     $api = $prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -126,10 +140,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
 
     $api = $fedora_prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -149,10 +160,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
 
     $api = $fedora_prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -180,10 +188,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
 
     $api = $fedora_prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -199,10 +204,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $fedora_prophecy->getResourceHeaders('', ['Connection' => 'close'])->willReturn($prophecy->reveal());
     $api = $fedora_prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -218,10 +220,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
 
     $api = $fedora_prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -236,7 +235,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $head_prophecy = $this->prophesize(Response::class);
     $head_prophecy->getStatusCode()->willReturn(410);
     $head_prophecy->getHeader('Link')
-      ->willReturn('<some-path-to-a-tombstone>; rel="hasTombstone"');
+      ->willReturn(['<some-path-to-a-tombstone>; rel="hasTombstone"']);
 
     $tombstone_prophecy = $this->prophesize(Response::class);
     $tombstone_prophecy->getStatusCode()->willReturn(204);
@@ -249,10 +248,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
 
     $api = $fedora_prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -267,7 +263,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
     $head_prophecy = $this->prophesize(Response::class);
     $head_prophecy->getStatusCode()->willReturn(410);
     $head_prophecy->getHeader('Link')
-      ->willReturn('<some-path-to-a-tombstone>; rel="hasTombstone"');
+      ->willReturn(['<some-path-to-a-tombstone>; rel="hasTombstone"']);
 
     $tombstone_prophecy = $this->prophesize(Response::class);
     $tombstone_prophecy->getStatusCode()->willReturn(500);
@@ -280,10 +276,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
 
     $api = $fedora_prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    return new FedoraAdapter($api, $mime_guesser);
+    return new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
   }
 
   /**
@@ -361,7 +354,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
 
     $metadata = $adapter->read('');
     $this->assertFileMetadata($metadata);
-    $this->assertTrue($metadata['contents'] == "DERP", "Expecting 'content' of 'DERP', received '${metadata['contents']}'");
+    $this->assertTrue($metadata['contents'] == "DERP", "Expecting 'content' of 'DERP', received '{$metadata['contents']}'");
   }
 
   /**
@@ -644,10 +637,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
 
     $api = $fedora_prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    $adapter = new FedoraAdapter($api, $mime_guesser);
+    $adapter = new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
 
     $this->assertTrue($adapter->rename('', '') == TRUE, "rename() must return TRUE on success");
   }
@@ -664,10 +654,7 @@ class FedoraAdapterTest extends IslandoraKernelTestBase {
 
     $api = $fedora_prophecy->reveal();
 
-    $mime_guesser = $this->prophesize(MimeTypeGuesserInterface::class)
-      ->reveal();
-
-    $adapter = new FedoraAdapter($api, $mime_guesser);
+    $adapter = new FedoraAdapter($api, $this->mimeGuesser, $this->logger);
 
     $this->assertTrue($adapter->createDir('', $this->prophesize(Config::class)
       ->reveal()) == FALSE, "createDir() must return FALSE on fail");

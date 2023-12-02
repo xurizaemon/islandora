@@ -5,6 +5,7 @@ namespace Drupal\islandora_text_extraction\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\File\FileSystem;
 use Drupal\Core\File\FileSystemInterface;
+use Drupal\file\FileRepository;
 use Drupal\media\Entity\Media;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,13 +44,23 @@ class MediaSourceController extends ControllerBase {
   protected $fileSystem;
 
   /**
+   * File repository service.
+   *
+   * @var \Drupal\file\FileRepository
+   */
+  protected $fileRepository;
+
+  /**
    * MediaSourceController constructor.
    *
    * @param \Drupal\Core\File\FileSystem $fileSystem
    *   Filesystem service.
+   * @param \Drupal\file\FileRepository $fileRepository
+   *   File Repository service.
    */
-  public function __construct(FileSystem $fileSystem) {
+  public function __construct(FileSystem $fileSystem, FileRepository $fileRepository) {
     $this->fileSystem = $fileSystem;
+    $this->fileRepository = $fileRepository;
   }
 
   /**
@@ -63,7 +74,8 @@ class MediaSourceController extends ControllerBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('file_system')
+      $container->get('file_system'),
+      $container->get('file.repository'),
     );
   }
 
@@ -98,7 +110,7 @@ class MediaSourceController extends ControllerBase {
       if (!$this->fileSystem->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS)) {
         throw new HttpException(500, "The destination directory does not exist, could not be created, or is not writable");
       }
-      $file = file_save_data($contents, $content_location, FileSystemInterface::EXISTS_REPLACE);
+      $file = $this->fileRepository->writeData($contents, $content_location, FileSystemInterface::EXISTS_REPLACE);
       if ($media->hasField($destination_field)) {
         $media->{$destination_field}->setValue([
           'target_id' => $file->id(),
@@ -108,7 +120,11 @@ class MediaSourceController extends ControllerBase {
         $this->getLogger('islandora')->warning("Field $destination_field is not defined in  Media Type {$media->bundle()}");
       }
       if ($media->hasField($destination_text_field)) {
-        $media->{$destination_text_field}->setValue(nl2br($contents));
+        // @todo The request actually has a malformed parameter string, ?text_format=plain_text?connection_close=true.
+        if (substr($request->query->get('text_format'), 0, 10) == 'plain_text') {
+          $contents = nl2br($contents);
+        }
+        $media->{$destination_text_field}->setValue($contents);
       }
       else {
         $this->getLogger('islandora')->warning("Field $destination_text_field is not defined in Media Type {$media->bundle()}");
