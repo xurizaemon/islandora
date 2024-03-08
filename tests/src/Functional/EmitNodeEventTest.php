@@ -68,7 +68,7 @@ class EmitNodeEventTest extends IslandoraFunctionalTestBase {
   protected function createEmitAction($entity_type, $event_type) {
     $this->drupalGet('admin/config/system/actions');
     $this->getSession()->getPage()->findById("edit-action")->selectOption("Emit a $entity_type event to a queue/topic");
-    $this->getSession()->getPage()->pressButton($this->t('Create'));
+    $this->getSession()->getPage()->pressButton('Create');
     $this->assertSession()->statusCodeEquals(200);
 
     $action_id = "emit_" . $entity_type . "_" . lcfirst($event_type);
@@ -76,7 +76,7 @@ class EmitNodeEventTest extends IslandoraFunctionalTestBase {
     $this->getSession()->getPage()->fillField('edit-id', $action_id);
     $this->getSession()->getPage()->fillField('edit-queue', "emit-$entity_type-" . lcfirst($event_type));
     $this->getSession()->getPage()->findById("edit-event")->selectOption($event_type);
-    $this->getSession()->getPage()->pressButton($this->t('Save'));
+    $this->getSession()->getPage()->pressButton('Save');
     $this->assertSession()->statusCodeEquals(200);
 
     return $action_id;

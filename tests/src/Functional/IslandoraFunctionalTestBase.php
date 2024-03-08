@@ -306,7 +306,7 @@ EOD;
       ->getPage()
       ->findById("edit-reactions-$reaction_type-actions")
       ->selectOption($action_id);
-    $this->getSession()->getPage()->pressButton($this->t('Save and continue'));
+    $this->getSession()->getPage()->pressButton('Save and continue');
     $this->assertSession()->statusCodeEquals(200);
   }
 
