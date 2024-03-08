@@ -39,7 +39,7 @@ class ContentEntityTypeTest extends IslandoraFunctionalTestBase {
     $this->addCondition('test', 'content_entity_type');
     $this->getSession()->getPage()->checkField("edit-conditions-content-entity-type-types-node");
     $this->getSession()->getPage()->findById("edit-conditions-content-entity-type-context-mapping-node")->selectOption("@node.node_route_context:node");
-    $this->getSession()->getPage()->pressButton($this->t('Save and continue'));
+    $this->getSession()->getPage()->pressButton('Save and continue');
     $this->addPresetReaction('test', 'index', 'hello_world');
 
     // Create a new node confirm Hello World! is printed to the screen.

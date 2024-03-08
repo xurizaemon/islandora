@@ -53,7 +53,7 @@ class DerivativeReactionTest extends IslandoraFunctionalTestBase {
       'field_media_of[0][target_id]' => 'Test Node',
     ];
     $this->drupalGet('media/add/' . $this->testMediaType->id());
-    $this->submitForm($values, $this->t('Save'));
+    $this->submitForm($values, 'Save');
 
     // field_media_of is set and there's a file, so derivatives should fire.
     $this->assertSession()->pageTextContains("Hello World!");
