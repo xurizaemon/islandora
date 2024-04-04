@@ -34,11 +34,11 @@ class JsonldTypeAlterReactionTest extends JsonldSelfReferenceReactionTest {
       ], 'Save and continue');
       $this->submitForm([], 'Save field settings');
     }
-    else {
+    elseif (version_compare(\Drupal::VERSION, '10.3.x-dev', 'lt'){
       $this->getSession()->getPage()->selectFieldOption('new_storage_type', 'plain_text');
-      // First need to submit the form with the elements displayed
-      // on initial page load. The form is using AJAX to send a second element
-      // after we selected the radio button above
+      // For Drupal 10.2, we first need to submit the form with the elements
+      // displayed on initial page load. The form is using AJAX to send a
+      // second element after we selected the radio button above
       // we can instead get the second element by submitting the form
       // and having it throw an error since the required field is missing.
       // @todo refactor this as a functional javascript test.
@@ -50,6 +50,25 @@ class JsonldTypeAlterReactionTest extends JsonldSelfReferenceReactionTest {
 
       // Now we can proceed, selecting the plain text (i.e. string)
       // for the second element now that the element is displayed after
+      // the initial form submission.
+      $this->getSession()->getPage()->selectFieldOption('group_field_options_wrapper', 'string');
+      $this->submitForm([
+        'new_storage_type' => 'plain_text',
+        'label' => 'Typed Predicate',
+        'field_name' => 'type_predicate',
+        'group_field_options_wrapper' => 'string',
+      ], 'Continue');
+    }
+    else {
+      $this->getSession()->getPage()->selectFieldOption('new_storage_type', 'plain_text');
+      // For Drupal 10.3 the label is not visible at first.
+      // @todo refactor this as a functional javascript test.
+      $this->submitForm([
+        'new_storage_type' => 'plain_text',
+      ], 'Continue');
+
+      // Now we can proceed, entering a label and selecting Text (plain)
+      // for the second element now that the elements are displayed after
       // the initial form submission.
       $this->getSession()->getPage()->selectFieldOption('group_field_options_wrapper', 'string');
       $this->submitForm([
