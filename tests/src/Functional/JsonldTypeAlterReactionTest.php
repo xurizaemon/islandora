@@ -34,7 +34,7 @@ class JsonldTypeAlterReactionTest extends JsonldSelfReferenceReactionTest {
       ], 'Save and continue');
       $this->submitForm([], 'Save field settings');
     }
-    elseif (version_compare(\Drupal::VERSION, '10.3.x-dev', 'lt'){
+    elseif (version_compare(\Drupal::VERSION, '10.3.x-dev', 'lt')) {
       $this->getSession()->getPage()->selectFieldOption('new_storage_type', 'plain_text');
       // For Drupal 10.2, we first need to submit the form with the elements
       // displayed on initial page load. The form is using AJAX to send a
