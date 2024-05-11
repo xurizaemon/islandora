@@ -48,8 +48,9 @@ class GenerateOCRDerivative extends AbstractGenerateDerivative {
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::validateConfigurationForm($form, $form_state);
-    $exploded_mime = explode('/', $form_state->getValue('mimetype'));
-    if ($exploded_mime[0] != 'text') {
+    $mime = $form_state->getValue('mimetype');
+    $exploded_mime = explode('/', $mime);
+    if ($exploded_mime[0] != 'text' && $mime != 'application/xml') {
       $form_state->setErrorByName(
         'mimetype',
         $this->t('Please enter file mimetype (e.g. text/plain.)')
