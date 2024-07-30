@@ -8,6 +8,7 @@
 use Drupal\Core\Extension\ExtensionNameLengthException;
 use Drupal\Core\Extension\MissingDependencyException;
 use Drupal\Core\Utility\UpdateException;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Adds common namespaces to jsonld.settings.
@@ -221,8 +222,18 @@ function islandora_update_8008() {
   if ($config) {
     $config->set('redirect_after_media_save', FALSE);
     $config->save(TRUE);
-    return t('A new configuration option, "Redirect after media save" is now available. 
-    It has been turned off to preserve existing behaviour. To enable this setting visit 
+    return t('A new configuration option, "Redirect after media save" is now available.
+    It has been turned off to preserve existing behaviour. To enable this setting visit
     Configuration > Islandora > Core Settings.');
   }
+}
+
+/**
+ * Add "Delete node and media" action.
+ */
+function islandora_update_9001(&$sandbox) {
+  $config_id = 'system.action.delete_node_and_media';
+  $config_path = \Drupal::service('extension.list.module')->getPath('islandora') . '/config/install/' . $config_id . '.yml';
+  $data = Yaml::parseFile($config_path);
+  \Drupal::configFactory()->getEditable($config_id)->setData($data)->save(TRUE);
 }
