@@ -306,6 +306,9 @@ class FedoraAdapter implements AdapterInterface {
 
     $code = $response->getStatusCode();
     if (!in_array($code, [201, 204])) {
+      $this->logger->error(
+        "Client error: Failed to save a Fedora resource to $path. Response is " . print_r($response, TRUE)
+      );
       return FALSE;
     }
 
