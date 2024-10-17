@@ -298,6 +298,12 @@ class FedoraAdapter implements AdapterInterface {
       }
     }
 
+    $parts = explode('/', $path);
+    array_pop($parts);
+    if ($parts) {
+      $this->createDir(implode('/', $parts), $config);
+    }
+
     $response = $this->fedora->saveResource(
         $path,
         $contents,
